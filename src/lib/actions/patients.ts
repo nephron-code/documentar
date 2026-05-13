@@ -43,21 +43,30 @@ export async function getLabTrend(patientId: string, examType: string) {
 
 /**
  * Lista todos os pacientes para a página principal.
+ * A busca usa unaccent() do PostgreSQL para ignorar acentos (ex: "jose" encontra "José").
+ * Requer a extensão unaccent habilitada no banco (CREATE EXTENSION IF NOT EXISTS unaccent).
  */
 export async function listPatients(search?: string) {
+  if (search && search.trim()) {
+    // Query raw para busca sem acentos — unaccent normaliza tanto o nome quanto o termo
+    const term = `%${search.trim()}%`
+    const rows = await prisma.$queryRaw<{
+      id: string; name: string; birthDate: Date; sex: string;
+      diagnosis: string; ckdStage: string | null; albuminuria: string | null
+    }[]>`
+      SELECT id, name, "birthDate", sex, diagnosis, "ckdStage", albuminuria
+      FROM "Patient"
+      WHERE unaccent(name) ILIKE unaccent(${term})
+      ORDER BY name ASC
+    `
+    return rows
+  }
+
   return prisma.patient.findMany({
-    where: search
-      ? { name: { contains: search, mode: 'insensitive' } }
-      : undefined,
     orderBy: { name: 'asc' },
     select: {
-      id: true,
-      name: true,
-      birthDate: true,
-      sex: true,
-      diagnosis: true,
-      ckdStage: true,
-      albuminuria: true,
+      id: true, name: true, birthDate: true, sex: true,
+      diagnosis: true, ckdStage: true, albuminuria: true,
     },
   })
 }
