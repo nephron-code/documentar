@@ -14,8 +14,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NefroDoc",
-  description: "Prontuário eletrônico para Nefrologia ambulatorial",
+  title: {
+    default: 'NefroDoc — Prontuário de Nefrologia',
+    template: '%s — NefroDoc',
+  },
+  description:
+    'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções clínicas e exames com diretrizes KDIGO integradas.',
+  openGraph: {
+    title: 'NefroDoc — Prontuário de Nefrologia',
+    description:
+      'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções clínicas e exames com diretrizes KDIGO integradas.',
+    siteName: 'NefroDoc',
+    locale: 'pt_BR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'NefroDoc — Prontuário de Nefrologia',
+    description:
+      'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções clínicas e exames com diretrizes KDIGO integradas.',
+  },
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
