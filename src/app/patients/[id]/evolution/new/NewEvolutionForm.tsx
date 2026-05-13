@@ -118,6 +118,13 @@ type Patient = {
   medications?: string[]
 }
 
+type LabResultRef = {
+  examType: string
+  value: number
+  unit: string | null
+  examDate: Date | string
+}
+
 type Props = {
   patient: Patient
   /** Último valor de TFG registrado (pode ser null se não há exames anteriores) */
@@ -128,6 +135,8 @@ type Props = {
   lastImagingResults: string | null
   /** Conduta da última consulta — pré-preenchida para facilitar retornos */
   lastConductText: string | null
+  /** Exames da coleta mais recente — exibidos como referência acima dos campos */
+  lastLabResults: LabResultRef[]
 }
 
 export default function NewEvolutionForm({
@@ -136,6 +145,7 @@ export default function NewEvolutionForm({
   lastAcr,
   lastImagingResults,
   lastConductText,
+  lastLabResults,
 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -361,6 +371,44 @@ export default function NewEvolutionForm({
                   className="border border-gray-400 rounded-lg px-2 py-1.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
+            {/* Caixinha de referência — exames da última coleta */}
+            {lastLabResults.length > 0 && (() => {
+              // Monta um mapa rápido: examType → valor formatado
+              const refMap = Object.fromEntries(
+                lastLabResults.map(r => [r.examType, r.value])
+              )
+              const refDate = new Date(lastLabResults[0].examDate)
+                .toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+              // Filtra grupos e exames que têm valor na última coleta
+              const groupsWithData = LAB_GROUPS
+                .map(g => ({ ...g, exams: g.exams.filter(e => refMap[e.key] !== undefined) }))
+                .filter(g => g.exams.length > 0)
+
+              return (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                  <p className="text-xs font-semibold text-blue-700 mb-2">
+                    Última coleta: {refDate}
+                  </p>
+                  <div className="flex flex-wrap gap-x-6 gap-y-1">
+                    {groupsWithData.map(group => (
+                      <div key={group.group} className="min-w-0">
+                        <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wide mb-0.5">{group.group}</p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                          {group.exams.map(exam => (
+                            <span key={exam.key} className="text-xs text-blue-900">
+                              <span className="font-medium">{exam.label}</span>{' '}
+                              <span>{refMap[exam.key]}</span>{' '}
+                              <span className="text-blue-500">{exam.unit}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
             <div className="space-y-4">
               {LAB_GROUPS.map(group => (
                 <div key={group.group}>

@@ -51,6 +51,19 @@ export default async function NewEvolutionPage({
     select: { conductText: true },
   })
 
+  // Busca os exames laboratoriais da coleta mais recente para exibir na caixinha de referência
+  const lastLabEntry = await prisma.labResult.findFirst({
+    where: { patientId: id },
+    orderBy: { examDate: 'desc' },
+    select: { examDate: true },
+  })
+  const lastLabResults = lastLabEntry
+    ? await prisma.labResult.findMany({
+        where: { patientId: id, examDate: lastLabEntry.examDate },
+        select: { examType: true, value: true, unit: true, examDate: true },
+      })
+    : []
+
   return (
     <NewEvolutionForm
       patient={patient}
@@ -58,6 +71,7 @@ export default async function NewEvolutionPage({
       lastAcr={lastAcr?.value ?? null}
       lastImagingResults={lastImagingResults}
       lastConductText={lastEvolution?.conductText ?? null}
+      lastLabResults={lastLabResults}
     />
   )
 }
