@@ -143,7 +143,7 @@ export default async function PatientPage({
             </div>
           ) : (
             <ul className="space-y-2">
-              {patient.evolutions.map(ev => (
+              {patient.evolutions.map((ev: typeof patient.evolutions[number]) => (
                 <li key={ev.id}>
                   <Link
                     href={`/patients/${id}/evolution/${ev.id}`}
