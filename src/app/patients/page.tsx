@@ -75,7 +75,7 @@ export default async function PatientsPage({
           </div>
         ) : (
           <ul className="space-y-2">
-            {patients.map((p) => (
+            {patients.map((p: typeof patients[number]) => (
               <li key={p.id}>
                 <Link
                   href={`/patients/${p.id}`}
