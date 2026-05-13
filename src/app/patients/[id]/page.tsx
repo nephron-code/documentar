@@ -48,42 +48,45 @@ export default async function PatientPage({
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/patients" className="text-gray-400 hover:text-gray-600 transition-colors">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Link href="/patients" className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">{patient.name}</h1>
-              <p className="text-sm text-gray-500">NefroDoc</p>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-semibold text-gray-900 truncate">{patient.name}</h1>
+              <p className="text-xs sm:text-sm text-gray-500">NefroDoc</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {/* Editar — só ícone no mobile */}
             <Link
               href={`/patients/${id}/edit`}
-              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white px-2 sm:px-3 py-1.5 rounded-lg transition-colors"
+              title="Editar paciente"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Editar
+              <span className="hidden sm:inline">Editar</span>
             </Link>
             <DeletePatientButton patientId={id} patientName={patient.name} />
             <Link
               href={`/patients/${id}/evolution/new`}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
             >
-              Nova consulta
+              <span className="hidden sm:inline">Nova consulta</span>
+              <span className="sm:hidden">+ Consulta</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
 
         {/* Card do paciente */}
         <section className="bg-white border border-gray-200 rounded-lg p-6">

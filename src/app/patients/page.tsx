@@ -89,25 +89,26 @@ export default async function PatientsPage({
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">NefroDoc</h1>
-            <p className="text-sm text-gray-500">Prontuário de Nefrologia</p>
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900">NefroDoc</h1>
+            <p className="text-xs sm:text-sm text-gray-500">Prontuário de Nefrologia</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/patients/new"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors whitespace-nowrap"
             >
-              Novo paciente
+              <span className="hidden sm:inline">Novo paciente</span>
+              <span className="sm:hidden">+ Paciente</span>
             </Link>
             <LogoutButton />
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Busca reativa — Suspense obrigatório para useSearchParams no App Router */}
         <div className="mb-6">
           <Suspense fallback={
@@ -149,19 +150,19 @@ export default async function PatientsPage({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                     {/* Badge de última consulta */}
                     <LastConsultBadge date={'lastConsultation' in p ? p.lastConsultation as Date | null : null} />
 
                     {p.ckdStage && (
                       <span
-                        className={`text-xs font-medium px-2.5 py-1 rounded-full ${CKD_STAGE_COLOR[p.ckdStage] ?? 'bg-gray-100 text-gray-700'}`}
+                        className={`text-xs font-medium px-2 sm:px-2.5 py-1 rounded-full ${CKD_STAGE_COLOR[p.ckdStage] ?? 'bg-gray-100 text-gray-700'}`}
                       >
                         {p.ckdStage}
                       </span>
                     )}
                     {p.albuminuria && (
-                      <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
+                      <span className="hidden sm:inline text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
                         {p.albuminuria}
                       </span>
                     )}
