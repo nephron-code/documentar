@@ -91,7 +91,7 @@ export default async function PatientPage({
               </div>
               {patient.comorbidities.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
-                  {patient.comorbidities.map(c => (
+                  {patient.comorbidities.map((c: string) => (
                     <span key={c} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
                       {c}
                     </span>
@@ -102,7 +102,7 @@ export default async function PatientPage({
                 <div className="mt-3 pt-3 border-t border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Medicamentos em uso</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {patient.medications.map(m => (
+                    {patient.medications.map((m: string) => (
                       <span key={m} className="text-xs bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-0.5 rounded-full font-medium">
                         {m}
                       </span>
