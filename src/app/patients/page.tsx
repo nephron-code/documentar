@@ -2,6 +2,7 @@ import { listPatients } from '@/lib/actions/patients'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import PatientSearch from '@/components/PatientSearch'
+import LogoutButton from '@/components/LogoutButton'
 
 export const metadata = { title: 'Pacientes — NefroDoc' }
 
@@ -51,17 +52,12 @@ export default async function PatientsPage({
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href="/configuracoes/macros"
-              className="text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              Macros
-            </Link>
-            <Link
               href="/patients/new"
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Novo paciente
             </Link>
+            <LogoutButton />
           </div>
         </div>
       </header>
