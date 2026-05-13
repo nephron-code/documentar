@@ -8,7 +8,13 @@
  * Valores fora de referência são destacados visualmente.
  */
 
-import { type LabResult } from '@prisma/client'
+// Tipo de resultado laboratorial (subconjunto dos campos usados na tabela)
+type LabResultRow = {
+  examType: string
+  value: number
+  unit: string | null
+  examDate: Date | string
+}
 
 // Ordem de exibição e labels completos (sem abreviaturas — exibição ao paciente/médico)
 const LAB_ORDER: { key: string; label: string; unit: string; ref?: { min?: number; max?: number } }[] = [
@@ -48,7 +54,7 @@ const LAB_ORDER: { key: string; label: string; unit: string; ref?: { min?: numbe
 ]
 
 type Props = {
-  labResults: Pick<LabResult, 'examType' | 'value' | 'unit' | 'examDate'>[]
+  labResults: LabResultRow[]
 }
 
 function isAbnormal(value: number, ref?: { min?: number; max?: number }): boolean {
