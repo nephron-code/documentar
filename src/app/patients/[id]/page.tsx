@@ -2,6 +2,7 @@ import { getPatientWithHistory } from '@/lib/actions/patients'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import LabTable from '@/components/LabTable'
+import LabChart from '@/components/LabChart'
 import DeletePatientButton from '@/components/DeletePatientButton'
 
 const DIAGNOSIS_LABEL: Record<string, string> = {
@@ -181,12 +182,15 @@ export default async function PatientPage({
           )}
         </section>
 
-        {/* Exames — tabela pivô: linhas = tipo de exame, colunas = datas */}
+        {/* Exames — gráfico de evolução + tabela pivô */}
         <section>
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
             Exames laboratoriais
           </h2>
-          <LabTable labResults={patient.labResults} />
+          <div className="space-y-4">
+            <LabChart labResults={patient.labResults} />
+            <LabTable labResults={patient.labResults} />
+          </div>
         </section>
 
       </div>
