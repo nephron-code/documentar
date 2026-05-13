@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { createEvolution } from '@/lib/actions/patients'
 import KdigoAlert from '@/components/KdigoAlert'
 import ExamOrderPanel from '@/components/ExamOrderPanel'
@@ -155,6 +156,31 @@ export default function NewEvolutionForm({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  // Rastreia se o formulário foi modificado (para aviso de saída)
+  const [isDirty, setIsDirty] = useState(false)
+  // Controla o modal de confirmação de saída
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
+
+  // Aviso nativo ao fechar/recarregar a aba com dados não salvos
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
+  function markDirty() { setIsDirty(true) }
+
+  function handleBack() {
+    if (isDirty) {
+      setShowLeaveModal(true)
+    } else {
+      router.back()
+    }
+  }
   const today = new Date().toISOString().split('T')[0]
   const [labDate, setLabDate] = useState(today)
   const [labValues, setLabValues] = useState<Record<string, string>>(
@@ -211,6 +237,7 @@ export default function NewEvolutionForm({
 
   function updateLab(key: string, val: string) {
     setLabValues(prev => ({ ...prev, [key]: val }))
+    markDirty()
   }
 
   // Quando o usuário edita TFG manualmente, não recalcular por cima
@@ -264,6 +291,9 @@ export default function NewEvolutionForm({
       // Salva a lista de medicamentos atualizada
       await updatePatientMedications(patient.id, medications)
 
+      // Desativa o aviso de saída antes de navegar
+      setIsDirty(false)
+      toast.success('Consulta salva com sucesso!')
       router.push(`/patients/${patient.id}/evolution/${evolution.id}`)
     } catch {
       setError('Erro ao salvar consulta. Tente novamente.')
@@ -275,7 +305,7 @@ export default function NewEvolutionForm({
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600">
+          <button onClick={handleBack} className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
@@ -362,7 +392,7 @@ export default function NewEvolutionForm({
                   rows={4}
                   placeholder="Queixas do paciente, história da doença atual..."
                   value={chiefComplaint}
-                  onChange={e => setChiefComplaint(e.target.value)}
+                  onChange={e => { setChiefComplaint(e.target.value); markDirty() }}
                   onFocus={() => setActiveField('complaint')}
                   onKeyDown={macroComplaint.onKeyDown}
                   className={inputClass + " resize-none flex-1"} />
@@ -501,7 +531,7 @@ export default function NewEvolutionForm({
               rows={4}
               placeholder="Ex: Ultrassonografia renal — rins de tamanho normal, sem dilatação pielocalicial..."
               value={imagingResults}
-              onChange={e => setImagingResults(e.target.value)}
+              onChange={e => { setImagingResults(e.target.value); markDirty() }}
               className={inputClass + " resize-none"} />
           </section>
 
@@ -537,7 +567,7 @@ export default function NewEvolutionForm({
                     rows={4}
                     placeholder="Avaliação clínica, interpretação dos exames, estadiamento..."
                     value={clinicalNote}
-                    onChange={e => setClinicalNote(e.target.value)}
+                    onChange={e => { setClinicalNote(e.target.value); markDirty() }}
                     onFocus={() => setActiveField('clinicalNote')}
                     onKeyDown={macroClinical.onKeyDown}
                     className={inputClass + " resize-none"} />
@@ -605,6 +635,39 @@ export default function NewEvolutionForm({
           </button>
         </form>
       </div>
+
+      {/* Modal de confirmação de saída com dados não salvos */}
+      {showLeaveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowLeaveModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Dados não salvos</h2>
+                <p className="text-sm text-gray-600 mt-1">
+                  Você tem dados preenchidos que não foram salvos. Deseja sair mesmo assim?
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button onClick={() => setShowLeaveModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Ficar
+              </button>
+              <button onClick={() => { setIsDirty(false); router.back() }}
+                className="px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 rounded-lg transition-colors">
+                Sair sem salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   )
 }
