@@ -203,3 +203,56 @@ export async function createEvolution(data: {
 
   return evolution
 }
+
+/**
+ * Atualiza os dados demográficos de um paciente.
+ * Valida duplicata excluindo o próprio paciente da verificação.
+ */
+export async function updatePatient(patientId: string, data: {
+  name: string
+  birthDate: string
+  sex: string
+  diagnosis: string
+  etiology?: string
+  ckdStage?: string
+  albuminuria?: string
+  comorbidities: string[]
+  medications: string[]
+}) {
+  // Verifica duplicata excluindo o próprio paciente
+  const existing = await prisma.patient.findFirst({
+    where: {
+      birthDate: new Date(data.birthDate),
+      name: { equals: data.name.trim(), mode: 'insensitive' },
+      NOT: { id: patientId },
+    },
+    select: { id: true },
+  })
+  if (existing) {
+    throw new Error('DUPLICATE_PATIENT')
+  }
+
+  await prisma.patient.update({
+    where: { id: patientId },
+    data: {
+      name: data.name.trim(),
+      birthDate: new Date(data.birthDate),
+      sex: data.sex as 'MALE' | 'FEMALE',
+      diagnosis: data.diagnosis as any,
+      etiology: data.etiology || null,
+      ckdStage: (data.ckdStage as any) || null,
+      albuminuria: (data.albuminuria as any) || null,
+      comorbidities: data.comorbidities,
+      medications: data.medications,
+    },
+  })
+  revalidatePath(`/patients/${patientId}`)
+}
+
+/**
+ * Remove um paciente e todas as suas consultas e exames (onDelete: Cascade no schema).
+ */
+export async function deletePatient(patientId: string) {
+  await prisma.patient.delete({ where: { id: patientId } })
+  revalidatePath('/patients')
+}

@@ -2,6 +2,7 @@ import { getPatientWithHistory } from '@/lib/actions/patients'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import LabTable from '@/components/LabTable'
+import DeletePatientButton from '@/components/DeletePatientButton'
 
 const DIAGNOSIS_LABEL: Record<string, string> = {
   DRC: 'DRC',
@@ -59,12 +60,25 @@ export default async function PatientPage({
               <p className="text-sm text-gray-500">NefroDoc</p>
             </div>
           </div>
-          <Link
-            href={`/patients/${id}/evolution/new`}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            Nova consulta
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/patients/${id}/edit`}
+              className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400 bg-white px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </Link>
+            <DeletePatientButton patientId={id} patientName={patient.name} />
+            <Link
+              href={`/patients/${id}/evolution/new`}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              Nova consulta
+            </Link>
+          </div>
         </div>
       </header>
 
