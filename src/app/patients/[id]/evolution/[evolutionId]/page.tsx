@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { generateEHRText } from '@/lib/generateEHRText'
 import CopyButton from '@/components/CopyButton'
+import PrintButton from '@/components/PrintButton'
 
 function formatDate(date: Date) {
   return new Date(date).toLocaleDateString('pt-BR')
@@ -39,10 +40,11 @@ export default async function EvolutionPage({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg font-semibold text-gray-900">{evolution.patient.name}</h1>
             <p className="text-sm text-gray-500">Consulta de {formatDate(evolution.consultationDate)}</p>
           </div>
+          <PrintButton />
         </div>
       </header>
 
