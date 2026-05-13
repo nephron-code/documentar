@@ -8,6 +8,8 @@ import ExamOrderPanel from '@/components/ExamOrderPanel'
 import { calcTFGe, calcIdade } from '@/lib/ckd-epi-2021'
 import { useMacroExpander } from '@/hooks/useMacroExpander'
 import { getConductTemplate } from '@/lib/conductTemplates'
+import MacroPanel from '@/components/MacroPanel'
+import type { MacroRecord } from '@/lib/actions/macros'
 import MedicationAutocomplete from '@/components/MedicationAutocomplete'
 import MedicationList from '@/components/MedicationList'
 import DiagnosisEditor from '@/components/DiagnosisEditor'
@@ -137,6 +139,8 @@ type Props = {
   lastConductText: string | null
   /** Exames da coleta mais recente — exibidos como referência acima dos campos */
   lastLabResults: LabResultRef[]
+  /** Macros carregados do banco para o MacroPanel */
+  macros: MacroRecord[]
 }
 
 export default function NewEvolutionForm({
@@ -146,6 +150,7 @@ export default function NewEvolutionForm({
   lastImagingResults,
   lastConductText,
   lastLabResults,
+  macros,
 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -167,6 +172,9 @@ export default function NewEvolutionForm({
   const macroComplaint  = useMacroExpander(chiefComplaint, setChiefComplaint)
   const macroClinical   = useMacroExpander(clinicalNote, setClinicalNote)
   const macroConduct    = useMacroExpander(conductText, setConductText)
+
+  // Campo de texto com foco ativo — usado para sincronizar o MacroPanel
+  const [activeField, setActiveField] = useState<'complaint' | 'clinicalNote' | 'conductText' | null>(null)
 
   // TFGe calculada em tempo real a partir da creatinina
   const [tfgeCalculada, setTfgeCalculada] = useState<number | null>(null)
@@ -346,16 +354,26 @@ export default function NewEvolutionForm({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Queixa principal / Anamnese
-                <span className="ml-2 text-xs font-normal text-gray-400">macros: .ret .sem .inc…</span>
+                <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .ret .sem .inc + espaço</span>
               </label>
-              <textarea
-                name="chiefComplaint"
-                rows={3}
-                placeholder="Queixas do paciente, história da doença atual... (tente .ret + espaço)"
-                value={chiefComplaint}
-                onChange={e => setChiefComplaint(e.target.value)}
-                onKeyDown={macroComplaint.onKeyDown}
-                className={inputClass + " resize-none"} />
+              <div className="flex gap-3 items-start">
+                <textarea
+                  name="chiefComplaint"
+                  rows={4}
+                  placeholder="Queixas do paciente, história da doença atual..."
+                  value={chiefComplaint}
+                  onChange={e => setChiefComplaint(e.target.value)}
+                  onFocus={() => setActiveField('complaint')}
+                  onKeyDown={macroComplaint.onKeyDown}
+                  className={inputClass + " resize-none flex-1"} />
+                <div className="w-52 shrink-0" style={{ minHeight: '120px' }}>
+                  <MacroPanel
+                    macros={macros}
+                    activeField={activeField}
+                    onInsert={text => setChiefComplaint(prev => prev + text)}
+                  />
+                </div>
+              </div>
             </div>
           </section>
 
@@ -505,49 +523,70 @@ export default function NewEvolutionForm({
               </p>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Impressão clínica
-                <span className="ml-2 text-xs font-normal text-gray-400">macros: .drc .estab .prot…</span>
-              </label>
-              <textarea
-                name="clinicalNote"
-                rows={4}
-                placeholder="Avaliação clínica, interpretação dos exames, estadiamento..."
-                value={clinicalNote}
-                onChange={e => setClinicalNote(e.target.value)}
-                onKeyDown={macroClinical.onKeyDown}
-                className={inputClass + " resize-none"} />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Conduta
-                  {lastConductText && (
-                    <span className="ml-2 text-xs font-normal text-blue-500">pré-preenchida da última consulta</span>
-                  )}
-                  <span className="ml-2 text-xs font-normal text-gray-400">macros: .ret3 .mant .diet…</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const template = getConductTemplate(patient.diagnosis, patient.ckdStage)
-                    if (template) setConductText(template)
-                  }}
-                  className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors"
-                >
-                  ✦ Conduta KDIGO
-                </button>
+            {/* Layout de duas colunas: campos à esquerda, MacroPanel à direita */}
+            <div className="flex gap-4 items-start">
+              {/* Coluna dos campos */}
+              <div className="flex-1 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Impressão clínica
+                    <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .drc .estab + espaço</span>
+                  </label>
+                  <textarea
+                    name="clinicalNote"
+                    rows={4}
+                    placeholder="Avaliação clínica, interpretação dos exames, estadiamento..."
+                    value={clinicalNote}
+                    onChange={e => setClinicalNote(e.target.value)}
+                    onFocus={() => setActiveField('clinicalNote')}
+                    onKeyDown={macroClinical.onKeyDown}
+                    className={inputClass + " resize-none"} />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm font-medium text-gray-700">
+                      Conduta
+                      {lastConductText && (
+                        <span className="ml-2 text-xs font-normal text-blue-500">pré-preenchida da última consulta</span>
+                      )}
+                      <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .ret3 .mant + espaço</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const template = getConductTemplate(patient.diagnosis, patient.ckdStage)
+                        if (template) setConductText(template)
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors"
+                    >
+                      ✦ Conduta KDIGO
+                    </button>
+                  </div>
+                  <MedicationAutocomplete
+                    name="conductText"
+                    rows={6}
+                    placeholder="Orientações, medicamentos, retorno... (autocomplete de meds ao digitar 3+ letras)"
+                    value={conductText}
+                    onChange={setConductText}
+                    onFocus={() => setActiveField('conductText')}
+                    onKeyDown={macroConduct.onKeyDown}
+                    className={inputClass + " resize-none"}
+                  />
+                </div>
               </div>
-              <MedicationAutocomplete
-                name="conductText"
-                rows={5}
-                placeholder="Orientações, medicamentos, retorno... (autocomplete de meds ao digitar 3+ letras)"
-                value={conductText}
-                onChange={setConductText}
-                onKeyDown={macroConduct.onKeyDown}
-                className={inputClass + " resize-none"}
-              />
+
+              {/* MacroPanel — fixo à direita, acompanha os dois campos */}
+              <div className="w-56 shrink-0 sticky top-4" style={{ alignSelf: 'flex-start', maxHeight: '420px' }}>
+                <MacroPanel
+                  macros={macros}
+                  activeField={activeField}
+                  onInsert={text => {
+                    if (activeField === 'clinicalNote') setClinicalNote(prev => prev + text)
+                    else if (activeField === 'conductText') setConductText(prev => prev + text)
+                    else setClinicalNote(prev => prev + text)
+                  }}
+                />
+              </div>
             </div>
           </section>
 

@@ -89,3 +89,13 @@ enum Diagnosis {
   NEFROLITIASE
   CONSULTA_GERAL
 }
+
+model TextMacro {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  key       String   @unique  // ex: ".ret"
+  value     String            // texto expandido
+  category  String            // "complaint" | "clinicalNote" | "conductText" | "meds"
+  position  Int      @default(0) // ordem dentro da categoria
+}

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import NewEvolutionForm from './NewEvolutionForm'
 import { getLastImagingResults } from '@/lib/actions/patients'
+import { listMacros } from '@/lib/actions/macros'
 
 export default async function NewEvolutionPage({
   params,
@@ -64,6 +65,9 @@ export default async function NewEvolutionPage({
       })
     : []
 
+  // Macros do banco (fallback nos built-ins se banco vazio)
+  const macros = await listMacros()
+
   return (
     <NewEvolutionForm
       patient={patient}
@@ -72,6 +76,7 @@ export default async function NewEvolutionPage({
       lastImagingResults={lastImagingResults}
       lastConductText={lastEvolution?.conductText ?? null}
       lastLabResults={lastLabResults}
+      macros={macros}
     />
   )
 }

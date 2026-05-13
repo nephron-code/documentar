@@ -26,7 +26,7 @@ export const MACROS: Macro[] = [
   { key: '.disp',  value: 'Dispneia aos médios esforços. ' },
   { key: '.hip',   value: 'Hipertensão arterial de difícil controle. ' },
 
-  // --- Evolução / impressão clínica ---
+  // --- Evolução / impressão clínica — diagnósticos ---
   { key: '.drc',   value: 'Doença Renal Crônica ' },
   { key: '.has',   value: 'Hipertensão Arterial Sistêmica ' },
   { key: '.dm',    value: 'Diabetes Mellitus tipo 2 ' },
@@ -38,10 +38,24 @@ export const MACROS: Macro[] = [
   { key: '.prog',  value: 'Progressão da doença renal evidenciada pela queda da TFG. ' },
   { key: '.prot',  value: 'Proteinúria em níveis nefróticos. ' },
 
+  // --- Impressão clínica — DRC por estágio ---
+  { key: '.g1',    value: 'DRC G1 — TFG preservada (≥ 90 mL/min), com marcadores de lesão renal. Paciente estável. ' },
+  { key: '.g2',    value: 'DRC G2 — TFG levemente reduzida (60–89 mL/min). Monitorização regular. ' },
+  { key: '.g3a',   value: 'DRC G3a — TFG moderadamente reduzida (45–59 mL/min). Risco moderado de progressão. ' },
+  { key: '.g3b',   value: 'DRC G3b — TFG moderadamente a gravemente reduzida (30–44 mL/min). Iniciar planejamento de TRS. ' },
+  { key: '.g4',    value: 'DRC G4 — TFG gravemente reduzida (15–29 mL/min). Preparo para TRS indicado. ' },
+  { key: '.g5',    value: 'DRC G5 — Falência renal (TFG < 15 mL/min). Avaliar início de TRS. ' },
+
+  // --- Impressão clínica — achados laboratoriais ---
+  { key: '.tfgest', value: 'TFGe estável em relação à consulta anterior. ' },
+  { key: '.anemrc', value: 'Anemia normocrômica normocítica compatível com doença renal crônica. ' },
+  { key: '.dmo',    value: 'Distúrbio mineral-ósseo da DRC — PTH elevado, vitamina D insuficiente. ' },
+  { key: '.acidmet',value: 'Acidose metabólica leve a moderada (HCO₃ reduzido). ' },
+
   // --- Conduta ---
+  { key: '.ret1',  value: 'Retorno em 1 mês para reavaliação. ' },
   { key: '.ret3',  value: 'Retorno em 3 meses com exames. ' },
   { key: '.ret6',  value: 'Retorno em 6 meses com exames. ' },
-  { key: '.ret1',  value: 'Retorno em 1 mês para reavaliação. ' },
   { key: '.mant',  value: 'Manter medicações em uso. ' },
   { key: '.ajust', value: 'Ajuste de dose conforme função renal. ' },
   { key: '.enc',   value: 'Encaminhar para avaliação de acesso vascular para hemodiálise. ' },
@@ -51,6 +65,20 @@ export const MACROS: Macro[] = [
   { key: '.peso',  value: 'Controle de peso diário em casa. ' },
   { key: '.pa',    value: 'Monitorização domiciliar da pressão arterial. ' },
   { key: '.nef',   value: 'Aguardar vaga para nefrologia terciária. ' },
+
+  // --- Conduta — DRC por estágio (templates compactos) ---
+  { key: '.cond1',  value: 'Controle pressórico (alvo < 130/80 mmHg). IECA/BRA se proteinúria. Dieta hipossódica. Atividade física regular. Retorno em 12 meses. ' },
+  { key: '.cond2',  value: 'Controle pressórico + IECA/BRA. Considerar iSGLT2 se ACR ≥ 200 mg/g. Dieta hipossódica e hipoproteica leve. Rastrear dislipidemia. Retorno em 12 meses. ' },
+  { key: '.cond3a', value: 'IECA/BRA + iSGLT2 se ACR ≥ 200 mg/g. Rastrear anemia e DMO. Avaliar bicarbonato se HCO₃ < 22. Dieta hipoproteica. Retorno em 6 meses. ' },
+  { key: '.cond3b', value: 'Manter IECA/BRA com monitorização de K⁺. iSGLT2 se TFG ≥ 25. Eritropoetina se Hb < 10. Corrigir vitamina D. Bicarbonato se acidose. Discutir TRS. Retorno em 3–4 meses. ' },
+  { key: '.cond4',  value: 'Suspender metformina. Eritropoetina + ferro IV. Quelante de fósforo. Bicarbonato oral. Encaminhar cirurgia vascular para FAV. Retorno em 2–3 meses. ' },
+  { key: '.cond5',  value: 'Avaliar início urgente de TRS. Verificar acesso vascular. Controle rigoroso de K⁺, P e volemia. Eritropoetina + ferro IV. Evitar nefrotóxicos. ' },
+
+  // --- Conduta — procedimentos e encaminhamentos específicos ---
+  { key: '.inicbicar', value: 'Iniciar bicarbonato de sódio oral (objetivo HCO₃ > 22 mEq/L). ' },
+  { key: '.cpo',    value: 'Controle de peso e orientação de restrição hídrica. ' },
+  { key: '.fav',    value: 'Encaminhar cirurgia vascular para confecção de fístula arteriovenosa. ' },
+  { key: '.trs',    value: 'Discutir modalidades de terapia renal substitutiva (hemodiálise, diálise peritoneal, transplante). ' },
 
   // --- Medicações frequentes ---
   { key: '.enal',  value: 'Enalapril ' },
@@ -62,6 +90,12 @@ export const MACROS: Macro[] = [
   { key: '.calci', value: 'Carbonato de cálcio ' },
   { key: '.epo',   value: 'Eritropoetina ' },
   { key: '.ferro', value: 'Sulfato ferroso ' },
+  { key: '.dapa',  value: 'Dapagliflozina ' },
+  { key: '.empa',  value: 'Empagliflozina ' },
+  { key: '.fine',  value: 'Finerenona ' },
+  { key: '.alop',  value: 'Alopurinol ' },
+  { key: '.citr',  value: 'Citrato de potássio ' },
+  { key: '.seve',  value: 'Sevelamer ' },
 ]
 
 /**

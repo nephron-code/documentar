@@ -7,6 +7,7 @@ type Props = {
   value: string
   onChange: (v: string) => void
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  onFocus?: () => void
   rows?: number
   placeholder?: string
   className?: string
@@ -27,6 +28,7 @@ export default function MedicationAutocomplete({
   value,
   onChange,
   onKeyDown,
+  onFocus,
   rows = 5,
   placeholder,
   className,
@@ -132,6 +134,7 @@ export default function MedicationAutocomplete({
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onFocus={onFocus}
         className={className}
       />
       {suggestions.length > 0 && (

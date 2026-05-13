@@ -47,12 +47,20 @@ export default async function PatientsPage({
             <h1 className="text-xl font-semibold text-gray-900">NefroDoc</h1>
             <p className="text-sm text-gray-500">Prontuário de Nefrologia</p>
           </div>
-          <Link
-            href="/patients/new"
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            Novo paciente
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/configuracoes/macros"
+              className="text-sm text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Macros
+            </Link>
+            <Link
+              href="/patients/new"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              Novo paciente
+            </Link>
+          </div>
         </div>
       </header>
 
