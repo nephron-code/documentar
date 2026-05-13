@@ -52,23 +52,38 @@ export async function listPatients(search?: string) {
     const term = `%${search.trim()}%`
     const rows = await prisma.$queryRaw<{
       id: string; name: string; birthDate: Date; sex: string;
-      diagnosis: string; ckdStage: string | null; albuminuria: string | null
+      diagnosis: string; ckdStage: string | null; albuminuria: string | null;
+      lastConsultation: Date | null
     }[]>`
-      SELECT id, name, "birthDate", sex, diagnosis, "ckdStage", albuminuria
-      FROM "Patient"
-      WHERE unaccent(name) ILIKE unaccent(${term})
-      ORDER BY name ASC
+      SELECT p.id, p.name, p."birthDate", p.sex, p.diagnosis, p."ckdStage", p.albuminuria,
+             MAX(e."consultationDate") AS "lastConsultation"
+      FROM "Patient" p
+      LEFT JOIN "Evolution" e ON e."patientId" = p.id
+      WHERE unaccent(p.name) ILIKE unaccent(${term})
+      GROUP BY p.id
+      ORDER BY p.name ASC
     `
     return rows
   }
 
-  return prisma.patient.findMany({
+  const patients = await prisma.patient.findMany({
     orderBy: { name: 'asc' },
     select: {
       id: true, name: true, birthDate: true, sex: true,
       diagnosis: true, ckdStage: true, albuminuria: true,
+      evolutions: {
+        orderBy: { consultationDate: 'desc' },
+        take: 1,
+        select: { consultationDate: true },
+      },
     },
   })
+
+  // Normaliza para shape consistente com a query raw
+  return patients.map((p: typeof patients[number]) => ({
+    ...p,
+    lastConsultation: p.evolutions[0]?.consultationDate ?? null,
+  }))
 }
 export async function createPatient(data: {
   name: string

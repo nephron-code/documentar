@@ -33,6 +33,51 @@ function calcAge(birthDate: Date): number {
   return age
 }
 
+function formatDate(date: Date): string {
+  return new Date(date).toLocaleDateString('pt-BR')
+}
+
+/** Quantos dias desde a última consulta. */
+function daysSince(date: Date | null): number | null {
+  if (!date) return null
+  return Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24))
+}
+
+/**
+ * Badge colorido mostrando há quantos dias foi a última consulta.
+ * Verde ≤90d | Amarelo 91-180d | Vermelho >180d | Cinza = sem consultas.
+ */
+function LastConsultBadge({ date }: { date: Date | null }) {
+  const days = daysSince(date)
+
+  if (days === null) {
+    return <span className="text-xs text-gray-400 italic">sem consultas</span>
+  }
+
+  const label = days === 0 ? 'hoje' : `há ${days}d`
+  const title = formatDate(date!)
+
+  if (days > 180) {
+    return (
+      <span title={title} className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+        {label}
+      </span>
+    )
+  }
+  if (days > 90) {
+    return (
+      <span title={title} className="text-xs font-medium px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+        {label}
+      </span>
+    )
+  }
+  return (
+    <span title={title} className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+      {label}
+    </span>
+  )
+}
+
 export default async function PatientsPage({
   searchParams,
 }: {
@@ -91,7 +136,7 @@ export default async function PatientsPage({
                   className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-5 py-4 hover:border-blue-400 hover:shadow-sm transition-all"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 font-semibold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 font-semibold text-sm flex-shrink-0">
                       {p.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -105,6 +150,9 @@ export default async function PatientsPage({
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {/* Badge de última consulta */}
+                    <LastConsultBadge date={'lastConsultation' in p ? p.lastConsultation as Date | null : null} />
+
                     {p.ckdStage && (
                       <span
                         className={`text-xs font-medium px-2.5 py-1 rounded-full ${CKD_STAGE_COLOR[p.ckdStage] ?? 'bg-gray-100 text-gray-700'}`}
@@ -117,7 +165,7 @@ export default async function PatientsPage({
                         {p.albuminuria}
                       </span>
                     )}
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
