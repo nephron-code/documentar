@@ -81,6 +81,18 @@ export async function createPatient(data: {
   comorbidities: string[]
   medications: string[]
 }) {
+  // Verifica duplicata: mesmo nome (case-insensitive) + mesma data de nascimento
+  const existing = await prisma.patient.findFirst({
+    where: {
+      birthDate: new Date(data.birthDate),
+      name: { equals: data.name.trim(), mode: 'insensitive' },
+    },
+    select: { id: true },
+  })
+  if (existing) {
+    throw new Error('DUPLICATE_PATIENT')
+  }
+
   return prisma.patient.create({
     data: {
       name: data.name,

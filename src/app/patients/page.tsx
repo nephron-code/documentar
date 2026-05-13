@@ -1,5 +1,7 @@
 import { listPatients } from '@/lib/actions/patients'
 import Link from 'next/link'
+import { Suspense } from 'react'
+import PatientSearch from '@/components/PatientSearch'
 
 export const metadata = { title: 'Pacientes — NefroDoc' }
 
@@ -65,15 +67,18 @@ export default async function PatientsPage({
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
-        {/* Busca */}
-        <form method="GET" className="mb-6">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Buscar paciente pelo nome..."
-            className="w-full border border-gray-400 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </form>
+        {/* Busca reativa — Suspense obrigatório para useSearchParams no App Router */}
+        <div className="mb-6">
+          <Suspense fallback={
+            <input
+              placeholder="Buscar paciente pelo nome..."
+              disabled
+              className="w-full border border-gray-400 rounded-lg px-4 py-2.5 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          }>
+            <PatientSearch />
+          </Suspense>
+        </div>
 
         {/* Lista */}
         {patients.length === 0 ? (

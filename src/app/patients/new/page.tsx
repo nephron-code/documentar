@@ -30,6 +30,7 @@ export default function NewPatientPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedComorbidities, setSelectedComorbidities] = useState<string[]>([])
+  const [customComorbidity, setCustomComorbidity] = useState('')
   const [selectedMedications, setSelectedMedications] = useState<string[]>([])
   const [diagnosis, setDiagnosis] = useState('')
 
@@ -37,6 +38,15 @@ export default function NewPatientPage() {
     setSelectedComorbidities(prev =>
       prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
     )
+  }
+
+  /** Retorna todas as comorbidades: selecionadas nos botões + texto livre (se preenchido) */
+  function getAllComorbidities(): string[] {
+    const extras = customComorbidity
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+    return [...selectedComorbidities, ...extras]
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -53,7 +63,7 @@ export default function NewPatientPage() {
       etiology: form.get('etiology') as string || undefined,
       ckdStage: form.get('ckdStage') as string || undefined,
       albuminuria: form.get('albuminuria') as string || undefined,
-      comorbidities: selectedComorbidities,
+      comorbidities: getAllComorbidities(),
       medications: selectedMedications,
     }
 
@@ -61,7 +71,11 @@ export default function NewPatientPage() {
       const patient = await createPatient(data)
       router.push(`/patients/${patient.id}`)
     } catch (err) {
-      setError('Erro ao cadastrar paciente. Tente novamente.')
+      if (err instanceof Error && err.message === 'DUPLICATE_PATIENT') {
+        setError('Já existe um paciente cadastrado com este nome e data de nascimento.')
+      } else {
+        setError('Erro ao cadastrar paciente. Tente novamente.')
+      }
       setLoading(false)
     }
   }
@@ -211,6 +225,20 @@ export default function NewPatientPage() {
                   {c}
                 </button>
               ))}
+            </div>
+            {/* Campo livre para comorbidades não listadas */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Outra comorbidade
+                <span className="ml-1 text-xs font-normal text-gray-400">separe por vírgula se mais de uma</span>
+              </label>
+              <input
+                type="text"
+                value={customComorbidity}
+                onChange={e => setCustomComorbidity(e.target.value)}
+                placeholder="Ex: Neoplasia, Hepatopatia, Artrite reumatoide..."
+                className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
           </section>
 
