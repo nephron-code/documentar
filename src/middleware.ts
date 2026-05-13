@@ -9,8 +9,8 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth
 
-  // Redireciona raiz para /patients (ou /login se não autenticado)
-  if (pathname === '/') {
+  // Redireciona usuário autenticado que acessa a raiz direto para /patients
+  if (pathname === '/' && isLoggedIn) {
     return NextResponse.redirect(new URL('/patients', req.url))
   }
 

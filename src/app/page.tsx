@@ -78,7 +78,7 @@ export default function SplashPage() {
             <span className="font-semibold text-gray-900 text-lg">NefroDoc</span>
           </div>
           <Link
-            href="/patients"
+            href="/login"
             className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             Acessar pacientes
@@ -100,7 +100,7 @@ export default function SplashPage() {
             diretrizes KDIGO integradas e geração automática de texto de prontuário.
           </p>
           <Link
-            href="/patients"
+            href="/login"
             className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors text-base"
           >
             Ir para pacientes
@@ -137,7 +137,7 @@ export default function SplashPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Pronto para começar?</h2>
           <p className="text-gray-500 mb-8 text-sm">Acesse a lista de pacientes e inicie o acompanhamento.</p>
           <Link
-            href="/patients"
+            href="/login"
             className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors"
           >
             Acessar pacientes
