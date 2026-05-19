@@ -19,32 +19,54 @@ model Patient {
   ckdStage      CkdStage?
   albuminuria   AlbuminuriaCategory?
   comorbidities String[]
-  medications   String[]
   evolutions    Evolution[]
   labResults    LabResult[]
+  medications   PatientMedication[]
 
   @@index([name])
 }
 
 model Evolution {
-  id                String   @id @default(cuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  consultationDate  DateTime
-  patientId         String
-  chiefComplaint    String?
-  bloodPressure     String?
-  weight            Float?
-  edema             String?
-  clinicalNote      String?
-  conductText       String?
-  generatedExames   String?
-  generatedEvolucao String?
-  generatedConduta  String?
-  imagingResults    String?
-  patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  id                    String              @id @default(cuid())
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  consultationDate      DateTime
+  patientId             String
+  chiefComplaint        String?
+  bloodPressure         String?
+  weight                Float?
+  edema                 String?
+  clinicalNote          String?
+  conductText           String?
+  generatedExames       String?
+  generatedEvolucao     String?
+  generatedConduta      String?
+  imagingResults        String?
+  patient               Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  prescribedMedications PatientMedication[] @relation("PrescribedIn")
+  suspendedMedications  PatientMedication[] @relation("SuspendedIn")
 
   @@index([patientId, consultationDate])
+}
+
+model PatientMedication {
+  id              String    @id @default(cuid())
+  createdAt       DateTime  @default(now())
+  patientId       String
+  name            String
+  dose            String?
+  frequency       String?
+  notes           String?
+  status          String    @default("ACTIVE") // "ACTIVE" | "DISCONTINUED"
+  prescribedAt    DateTime  @default(now())
+  suspendedAt     DateTime?
+  prescribedInId  String?
+  suspendedInId   String?
+  patient         Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  prescribedIn    Evolution? @relation("PrescribedIn", fields: [prescribedInId], references: [id])
+  suspendedIn     Evolution? @relation("SuspendedIn", fields: [suspendedInId], references: [id])
+
+  @@index([patientId, status])
 }
 
 model LabResult {

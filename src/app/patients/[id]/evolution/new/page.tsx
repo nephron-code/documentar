@@ -22,7 +22,6 @@ export default async function NewEvolutionPage({
       etiology: true,
       ckdStage: true,
       albuminuria: true,
-      medications: true,
     },
   })
 
@@ -65,12 +64,20 @@ export default async function NewEvolutionPage({
       })
     : []
 
+  // Busca medicamentos ativos do paciente para o Smart Prescription Flow
+  const activeMedications = await prisma.patientMedication.findMany({
+    where: { patientId: id, status: 'ACTIVE' },
+    orderBy: { prescribedAt: 'asc' },
+    select: { id: true, name: true, dose: true, frequency: true },
+  })
+
   // Macros do banco (fallback nos built-ins se banco vazio)
   const macros = await listMacros()
 
   return (
     <NewEvolutionForm
       patient={patient}
+      activeMedications={activeMedications}
       lastTfg={lastTfg?.value ?? null}
       lastAcr={lastAcr?.value ?? null}
       lastImagingResults={lastImagingResults}

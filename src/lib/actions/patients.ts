@@ -28,7 +28,7 @@ export async function getPatientWithHistory(patientId: string) {
       },
       medications: {
         where: { status: 'ACTIVE' },
-        orderBy: { prescribedAt: 'asc' },
+        orderBy: { prescribedAt: 'asc' as const },
         select: { id: true, name: true, dose: true, frequency: true },
       },
     },

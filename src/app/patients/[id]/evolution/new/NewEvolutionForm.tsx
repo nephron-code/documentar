@@ -13,7 +13,8 @@ import MacroPanel from '@/components/MacroPanel'
 import type { MacroRecord } from '@/lib/actions/macros'
 import MedicationAutocomplete from '@/components/MedicationAutocomplete'
 import MedicationList from '@/components/MedicationList'
-import type { ActiveMedication, NewMedicationInput } from '@/components/MedicationList'
+type ActiveMedication = { id: string; name: string; dose?: string | null; frequency?: string | null }
+type NewMedicationInput = { name: string; dose?: string; frequency?: string; notes?: string }
 import DiagnosisEditor from '@/components/DiagnosisEditor'
 import { updatePatientDiagnosis } from '@/lib/actions/patients'
 

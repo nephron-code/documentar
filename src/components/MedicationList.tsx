@@ -3,23 +3,48 @@
 import { useState, useRef, useEffect } from 'react'
 import { searchMedications } from '@/lib/medications'
 
+export type ActiveMedication = {
+  id: string
+  name: string
+  dose?: string | null
+  frequency?: string | null
+}
+
+export type NewMedicationInput = {
+  name: string
+  dose?: string
+  frequency?: string
+  notes?: string
+}
+
 type Props = {
-  value: string[]
-  onChange: (meds: string[]) => void
+  activeMedications: ActiveMedication[]
+  suspendedIds: string[]
+  onSuspend: (id: string) => void
+  onUnsuspend: (id: string) => void
+  newMedications: NewMedicationInput[]
+  onAddNew: (med: NewMedicationInput) => void
+  onRemoveNew: (idx: number) => void
+  onViewPrescription: () => void
 }
 
 /**
- * Campo para gerenciar lista de medicamentos em uso com posologia.
+ * Smart Prescription Flow — gerencia medicamentos ativos, suspensões e novas prescrições.
  *
- * Cada entrada é armazenada como string no formato "Nome Posologia"
- * ex: "Losartana 100mg 1x/dia"
- *
- * - Autocomplete por nome ao digitar 2+ caracteres
- * - Campo de posologia separado (livre)
- * - Medicamentos aparecem como tags removíveis
- * - Backspace com campos vazios remove o último item
+ * - Medicamentos ativos: vêm do banco via props, podem ser suspensos nesta consulta
+ * - Novos medicamentos: adicionados via autocomplete + posologia
+ * - Prescrição: botão abre modal com lista consolidada
  */
-export default function MedicationList({ value, onChange }: Props) {
+export default function MedicationList({
+  activeMedications,
+  suspendedIds,
+  onSuspend,
+  onUnsuspend,
+  newMedications,
+  onAddNew,
+  onRemoveNew,
+  onViewPrescription,
+}: Props) {
   const [nameInput, setNameInput] = useState('')
   const [doseInput, setDoseInput] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -43,7 +68,6 @@ export default function MedicationList({ value, onChange }: Props) {
   function selectSuggestion(name: string) {
     setNameInput(name)
     setSuggestions([])
-    // Foca no campo de posologia após selecionar o nome
     setTimeout(() => doseRef.current?.focus(), 50)
   }
 
@@ -51,18 +75,11 @@ export default function MedicationList({ value, onChange }: Props) {
     const name = nameInput.trim()
     if (!name) return
     const dose = doseInput.trim()
-    const entry = dose ? `${name} — ${dose}` : name
-    // Evita duplicatas exatas
-    if (value.includes(entry)) return
-    onChange([...value, entry])
+    onAddNew({ name, dose: dose || undefined })
     setNameInput('')
     setDoseInput('')
     setSuggestions([])
     nameRef.current?.focus()
-  }
-
-  function removeMedication(entry: string) {
-    onChange(value.filter(m => m !== entry))
   }
 
   function handleNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -75,18 +92,14 @@ export default function MedicationList({ value, onChange }: Props) {
       return
     }
     if (e.key === 'Escape') { setSuggestions([]); return }
-    if (e.key === 'Tab') { if (suggestions.length > 0 && activeIdx >= 0) { e.preventDefault(); selectSuggestion(suggestions[activeIdx]) } }
+    if (e.key === 'Tab' && suggestions.length > 0 && activeIdx >= 0) { e.preventDefault(); selectSuggestion(suggestions[activeIdx]) }
   }
 
   function handleDoseKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') { e.preventDefault(); addMedication(); return }
-    if (e.key === 'Backspace' && doseInput === '') {
-      // Volta para o campo nome
-      nameRef.current?.focus()
-    }
+    if (e.key === 'Backspace' && doseInput === '') { nameRef.current?.focus() }
   }
 
-  // Fecha dropdown ao clicar fora
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (listRef.current && !listRef.current.contains(e.target as Node) &&
@@ -102,29 +115,44 @@ export default function MedicationList({ value, onChange }: Props) {
 
   return (
     <div className="space-y-3">
-      {/* Tags dos medicamentos cadastrados */}
-      {value.length > 0 && (
+      {/* Medicamentos ativos do banco */}
+      {activeMedications.length > 0 && (
         <div className="space-y-1.5">
-          {value.map(entry => {
-            const [namePart, dosePart] = entry.split(' — ')
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Em uso</p>
+          {activeMedications.map(m => {
+            const suspended = suspendedIds.includes(m.id)
             return (
               <div
-                key={entry}
-                className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-3 py-2"
+                key={m.id}
+                className={`flex items-center justify-between rounded-lg px-3 py-2 border ${
+                  suspended
+                    ? 'bg-gray-50 border-gray-200 opacity-60'
+                    : 'bg-blue-50 border-blue-200'
+                }`}
               >
                 <div>
-                  <span className="text-sm font-medium text-blue-900">{namePart}</span>
-                  {dosePart && (
-                    <span className="text-sm text-blue-600 ml-2">{dosePart}</span>
+                  <span className={`text-sm font-medium ${suspended ? 'line-through text-gray-500' : 'text-blue-900'}`}>
+                    {m.name}
+                  </span>
+                  {m.dose && (
+                    <span className={`text-sm ml-2 ${suspended ? 'text-gray-400' : 'text-blue-600'}`}>
+                      {m.dose}
+                    </span>
+                  )}
+                  {suspended && (
+                    <span className="ml-2 text-xs text-red-500 font-medium">suspenso nesta consulta</span>
                   )}
                 </div>
                 <button
                   type="button"
-                  onClick={() => removeMedication(entry)}
-                  className="text-blue-300 hover:text-blue-600 ml-3 text-lg leading-none"
-                  aria-label={`Remover ${namePart}`}
+                  onClick={() => suspended ? onUnsuspend(m.id) : onSuspend(m.id)}
+                  className={`text-xs px-2 py-1 rounded-md ml-3 transition-colors ${
+                    suspended
+                      ? 'text-blue-600 hover:bg-blue-50 border border-blue-200'
+                      : 'text-red-500 hover:bg-red-50 border border-red-200'
+                  }`}
                 >
-                  ×
+                  {suspended ? 'Restaurar' : 'Suspender'}
                 </button>
               </div>
             )
@@ -132,9 +160,34 @@ export default function MedicationList({ value, onChange }: Props) {
         </div>
       )}
 
+      {/* Novos medicamentos adicionados nesta consulta */}
+      {newMedications.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Novos nesta consulta</p>
+          {newMedications.map((m, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg px-3 py-2"
+            >
+              <div>
+                <span className="text-sm font-medium text-green-900">{m.name}</span>
+                {m.dose && <span className="text-sm text-green-600 ml-2">{m.dose}</span>}
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemoveNew(idx)}
+                className="text-green-300 hover:text-green-600 ml-3 text-lg leading-none"
+                aria-label={`Remover ${m.name}`}
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Formulário de adição */}
       <div className="flex gap-2 items-start">
-        {/* Campo nome com autocomplete */}
         <div className="relative flex-1">
           <input
             ref={nameRef}
@@ -142,7 +195,7 @@ export default function MedicationList({ value, onChange }: Props) {
             value={nameInput}
             onChange={handleNameChange}
             onKeyDown={handleNameKeyDown}
-            placeholder="Nome do medicamento"
+            placeholder="Adicionar medicamento"
             className={inputClass + " w-full"}
           />
           {suggestions.length > 0 && (
@@ -165,7 +218,6 @@ export default function MedicationList({ value, onChange }: Props) {
           )}
         </div>
 
-        {/* Campo posologia */}
         <input
           ref={doseRef}
           type="text"
@@ -173,19 +225,29 @@ export default function MedicationList({ value, onChange }: Props) {
           onChange={e => setDoseInput(e.target.value)}
           onKeyDown={handleDoseKeyDown}
           placeholder="Posologia (ex: 100mg 1x/dia)"
-          className={inputClass + " w-52"}
+          className={inputClass + " w-48"}
         />
 
-        {/* Botão adicionar */}
         <button
           type="button"
           onClick={addMedication}
           disabled={!nameInput.trim()}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
+          className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
         >
           + Adicionar
         </button>
       </div>
+
+      {/* Botão receituário */}
+      {(activeMedications.filter(m => !suspendedIds.includes(m.id)).length > 0 || newMedications.length > 0) && (
+        <button
+          type="button"
+          onClick={onViewPrescription}
+          className="text-xs text-blue-600 hover:text-blue-800 underline"
+        >
+          Ver receituário completo
+        </button>
+      )}
 
       <p className="text-xs text-gray-400">
         Enter no nome vai para posologia · Enter na posologia adiciona o medicamento
