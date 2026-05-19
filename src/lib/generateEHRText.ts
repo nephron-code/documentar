@@ -8,8 +8,8 @@ export type PatientData = {
   ckdStage?: string | null
   albuminuria?: string | null
   comorbidities: string[]
-  /** Medicamentos — array de strings simples (ex: "Losartana 50mg 1x/dia") */
-  medications?: string[]
+  /** Medicamentos ativos */
+  medications?: { name: string; dose?: string | null; frequency?: string | null }[]
   etiology?: string | null
 }
 
@@ -233,9 +233,9 @@ export function generateEHRText(
   if (evolution.bloodPressure) vitals.push(`PA ${evolution.bloodPressure} mmHg`)
   if (evolution.weight) vitals.push(`Peso ${evolution.weight} kg`)
 
-  // Medicamentos — lista de strings simples
+  // Medicamentos — formata como "Nome dose frequency"
   const meds = patient.medications && patient.medications.length > 0
-    ? patient.medications.join(', ')
+    ? patient.medications.map(m => [m.name, m.dose, m.frequency].filter(Boolean).join(' ')).join(', ')
     : null
 
   // Linha de últimos exames (para referência rápida no topo)
