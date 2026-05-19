@@ -219,6 +219,105 @@ export async function createEvolution(data: {
   return evolution
 }
 
+type EvolutionInput = {
+  patientId: string
+  consultationDate: string
+  chiefComplaint?: string
+  bloodPressure?: string
+  weight?: string
+  edema?: string
+  clinicalNote?: string
+  conductText?: string
+  imagingResults?: string
+  labResults?: { examType: string; value: number; unit: string; examDate: string }[]
+}
+
+type NewMedicationInput = {
+  name: string
+  dose?: string
+  frequency?: string
+  notes?: string
+}
+
+/**
+ * Salva evolução + novos medicamentos prescritos + medicamentos suspensos
+ * em uma única transação atômica (Smart Prescription Flow).
+ */
+export async function saveEvolution(payload: {
+  evolutionData: EvolutionInput
+  newMedications?: NewMedicationInput[]
+  suspendedMedicationIds?: string[]
+}) {
+  const { evolutionData, newMedications = [], suspendedMedicationIds = [] } = payload
+
+  const result = await prisma.$transaction(async tx => {
+    // 1. Cria a evolução
+    const evolution = await tx.evolution.create({
+      data: {
+        patientId: evolutionData.patientId,
+        consultationDate: new Date(evolutionData.consultationDate),
+        chiefComplaint: evolutionData.chiefComplaint || null,
+        bloodPressure: evolutionData.bloodPressure || null,
+        weight: evolutionData.weight ? parseFloat(evolutionData.weight) : null,
+        edema: evolutionData.edema || null,
+        clinicalNote: evolutionData.clinicalNote || null,
+        conductText: evolutionData.conductText || null,
+        imagingResults: evolutionData.imagingResults || null,
+      },
+    })
+
+    // 2. Salva exames laboratoriais
+    if (evolutionData.labResults && evolutionData.labResults.length > 0) {
+      await tx.labResult.createMany({
+        data: evolutionData.labResults.map(lr => ({
+          patientId: evolutionData.patientId,
+          examType: lr.examType,
+          value: lr.value,
+          unit: lr.unit,
+          examDate: new Date(lr.examDate),
+        })),
+      })
+    }
+
+    // 3. Cria novos medicamentos prescritos nesta consulta
+    if (newMedications.length > 0) {
+      await tx.patientMedication.createMany({
+        data: newMedications.map(med => ({
+          patientId: evolutionData.patientId,
+          name: med.name,
+          dose: med.dose || null,
+          frequency: med.frequency || null,
+          notes: med.notes || null,
+          status: 'ACTIVE' as const,
+          prescribedAt: new Date(evolutionData.consultationDate),
+          prescribedInId: evolution.id,
+        })),
+      })
+    }
+
+    // 4. Descontinua medicamentos suspensos pelo médico nesta consulta
+    if (suspendedMedicationIds.length > 0) {
+      await tx.patientMedication.updateMany({
+        where: {
+          id: { in: suspendedMedicationIds },
+          patientId: evolutionData.patientId,
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'DISCONTINUED',
+          suspendedAt: new Date(evolutionData.consultationDate),
+          suspendedInId: evolution.id,
+        },
+      })
+    }
+
+    return evolution
+  })
+
+  revalidatePath(`/patients/${evolutionData.patientId}`)
+  return result
+}
+
 /**
  * Atualiza os dados demográficos de um paciente.
  * Valida duplicata excluindo o próprio paciente da verificação.

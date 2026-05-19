@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
-import { createEvolution } from '@/lib/actions/patients'
+import { saveEvolution } from '@/lib/actions/patients'
 import KdigoAlert from '@/components/KdigoAlert'
 import ExamOrderPanel from '@/components/ExamOrderPanel'
 import { calcTFGe, calcIdade } from '@/lib/ckd-epi-2021'
@@ -13,8 +13,9 @@ import MacroPanel from '@/components/MacroPanel'
 import type { MacroRecord } from '@/lib/actions/macros'
 import MedicationAutocomplete from '@/components/MedicationAutocomplete'
 import MedicationList from '@/components/MedicationList'
+import type { ActiveMedication, NewMedicationInput } from '@/components/MedicationList'
 import DiagnosisEditor from '@/components/DiagnosisEditor'
-import { updatePatientDiagnosis, updatePatientMedications } from '@/lib/actions/patients'
+import { updatePatientDiagnosis } from '@/lib/actions/patients'
 
 const DIAGNOSIS_LABEL: Record<string, string> = {
   DRC: 'Doença Renal Crônica',
@@ -118,7 +119,6 @@ type Patient = {
   etiology?: string | null
   ckdStage?: string | null
   albuminuria?: string | null
-  medications?: string[]
 }
 
 type LabResultRef = {
@@ -130,6 +130,8 @@ type LabResultRef = {
 
 type Props = {
   patient: Patient
+  /** Medicamentos ativos vindos do banco — base para o Smart Prescription Flow */
+  activeMedications: ActiveMedication[]
   /** Último valor de TFG registrado (pode ser null se não há exames anteriores) */
   lastTfg: number | null
   /** Último valor de ACR registrado */
@@ -146,6 +148,7 @@ type Props = {
 
 export default function NewEvolutionForm({
   patient,
+  activeMedications,
   lastTfg,
   lastAcr,
   lastImagingResults,
@@ -213,8 +216,18 @@ export default function NewEvolutionForm({
     albuminuria?: string | null
   } | null>(null)
 
-  // Medicamentos em uso — editável a cada consulta
-  const [medications, setMedications] = useState<string[]>(patient.medications ?? [])
+  // Smart Prescription Flow — medicamentos ativos do banco + novos + suspensos nesta consulta
+  const [suspendedIds, setSuspendedIds] = useState<string[]>([])
+  const [newMedications, setNewMedications] = useState<NewMedicationInput[]>([])
+  const [showPrescription, setShowPrescription] = useState(false)
+
+  // Lista unificada para o modal de receituário
+  const prescriptionList = [
+    ...activeMedications
+      .filter(m => !suspendedIds.includes(m.id))
+      .map(m => ({ name: m.name, dose: m.dose ?? undefined, frequency: m.frequency ?? undefined })),
+    ...newMedications,
+  ]
 
   // Recalcula TFGe sempre que a creatinina mudar
   useEffect(() => {
@@ -270,26 +283,28 @@ export default function NewEvolutionForm({
         examDate: labDate,
       }))
     try {
-      const evolution = await createEvolution({
-        patientId: patient.id,
-        consultationDate: form.get('consultationDate') as string,
-        chiefComplaint: chiefComplaint || undefined,
-        bloodPressure: form.get('bloodPressure') as string,
-        weight: form.get('weight') as string,
-        edema: form.get('edema') as string || undefined,
-        clinicalNote: clinicalNote || undefined,
-        conductText: conductText || undefined,
-        imagingResults: imagingResults || undefined,
-        labResults,
+      // Salva evolução + novos medicamentos + suspensões em uma única transação
+      const evolution = await saveEvolution({
+        evolutionData: {
+          patientId: patient.id,
+          consultationDate: form.get('consultationDate') as string,
+          chiefComplaint: chiefComplaint || undefined,
+          bloodPressure: form.get('bloodPressure') as string,
+          weight: form.get('weight') as string,
+          edema: form.get('edema') as string || undefined,
+          clinicalNote: clinicalNote || undefined,
+          conductText: conductText || undefined,
+          imagingResults: imagingResults || undefined,
+          labResults,
+        },
+        newMedications,
+        suspendedMedicationIds: suspendedIds,
       })
 
       // Aplica atualização de diagnóstico/estadiamento se o médico confirmou alguma mudança
       if (diagnosisUpdate && Object.keys(diagnosisUpdate).length > 0) {
         await updatePatientDiagnosis({ patientId: patient.id, ...diagnosisUpdate })
       }
-
-      // Salva a lista de medicamentos atualizada
-      await updatePatientMedications(patient.id, medications)
 
       // Desativa o aviso de saída antes de navegar
       setIsDirty(false)
@@ -342,15 +357,21 @@ export default function NewEvolutionForm({
             onChange={update => setDiagnosisUpdate(update)}
           />
 
-          {/* Medicamentos em uso — editável a cada consulta */}
+          {/* Smart Prescription Flow */}
           <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
             <div>
-              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Medicamentos em uso</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Lista atualizada a cada consulta — será salva no perfil do paciente.</p>
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Medicamentos</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Suspenda o que foi descontinuado e adicione novas prescrições.</p>
             </div>
             <MedicationList
-              value={medications}
-              onChange={setMedications}
+              activeMedications={activeMedications}
+              suspendedIds={suspendedIds}
+              onSuspend={id => setSuspendedIds(prev => [...prev, id])}
+              onUnsuspend={id => setSuspendedIds(prev => prev.filter(x => x !== id))}
+              newMedications={newMedications}
+              onAddNew={med => setNewMedications(prev => [...prev, med])}
+              onRemoveNew={idx => setNewMedications(prev => prev.filter((_, i) => i !== idx))}
+              onViewPrescription={() => setShowPrescription(true)}
             />
           </section>
 
@@ -636,6 +657,39 @@ export default function NewEvolutionForm({
           </button>
         </form>
       </div>
+
+      {/* Modal de receituário */}
+      {showPrescription && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowPrescription(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900">Receituário</h2>
+              <button onClick={() => setShowPrescription(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            {prescriptionList.length === 0 ? (
+              <p className="text-sm text-gray-400 italic">Nenhum medicamento em uso.</p>
+            ) : (
+              <ol className="space-y-2">
+                {prescriptionList.map((m, i) => (
+                  <li key={i} className="text-sm text-gray-800">
+                    <span className="font-medium">{i + 1}. {m.name}</span>
+                    {(m.dose || m.frequency) && (
+                      <span className="text-gray-600 ml-1">— {[m.dose, m.frequency].filter(Boolean).join(', ')}</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
+            <button
+              onClick={() => window.print()}
+              className="w-full text-sm font-medium text-blue-700 border border-blue-300 hover:bg-blue-50 rounded-lg py-2 transition-colors"
+            >
+              Imprimir
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal de confirmação de saída com dados não salvos */}
       {showLeaveModal && (
