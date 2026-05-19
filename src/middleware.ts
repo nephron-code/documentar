@@ -5,11 +5,14 @@ import { NextResponse, type NextRequest } from 'next/server'
  * Middleware de autenticação — Supabase Auth.
  * Protege todas as rotas sob /patients.
  * Rotas públicas: /, /login, arquivos estáticos.
+ *
+ * Usa getSession() (leitura de cookie, sem network call) para compatibilidade
+ * com o Edge Runtime do Vercel. A validação segura do token ocorre nas
+ * Server Actions via getUser().
  */
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
-  // Cria cliente Supabase que atualiza cookies de sessão automaticamente
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,22 +34,25 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // IMPORTANTE: não chamar getUser() em vez de getSession() para evitar spoofing
-  const { data: { user } } = await supabase.auth.getUser()
+  // getSession() — lê o JWT do cookie sem fazer network request
+  // Adequado para o middleware Edge; validação real ocorre nas Server Actions
+  const { data: { session } } = await supabase.auth.getSession()
+  const isLoggedIn = !!session
+
   const { pathname } = request.nextUrl
 
   // Usuário autenticado na raiz → /patients
-  if (pathname === '/' && user) {
+  if (pathname === '/' && isLoggedIn) {
     return NextResponse.redirect(new URL('/patients', request.url))
   }
 
   // Usuário autenticado tentando acessar /login → /patients
-  if (pathname === '/login' && user) {
+  if (pathname === '/login' && isLoggedIn) {
     return NextResponse.redirect(new URL('/patients', request.url))
   }
 
   // Usuário não autenticado tentando acessar /patients → /login
-  if (pathname.startsWith('/patients') && !user) {
+  if (pathname.startsWith('/patients') && !isLoggedIn) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
