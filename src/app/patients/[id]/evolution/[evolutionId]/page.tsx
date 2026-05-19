@@ -40,10 +40,7 @@ export default async function EvolutionPage({
           ckdStage: true,
           albuminuria: true,
           comorbidities: true,
-          medications: {
-            where: { status: 'ACTIVE' },
-            select: { name: true, dose: true, frequency: true },
-          },
+          medications: true,
         },
       },
     },
