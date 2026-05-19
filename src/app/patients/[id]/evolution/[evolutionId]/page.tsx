@@ -18,7 +18,35 @@ export default async function EvolutionPage({
 
   const evolution = await prisma.evolution.findUnique({
     where: { id: evolutionId },
-    include: { patient: true },
+    select: {
+      id: true,
+      patientId: true,
+      consultationDate: true,
+      chiefComplaint: true,
+      bloodPressure: true,
+      weight: true,
+      edema: true,
+      clinicalNote: true,
+      conductText: true,
+      imagingResults: true,
+      patient: {
+        select: {
+          id: true,
+          name: true,
+          birthDate: true,
+          sex: true,
+          diagnosis: true,
+          etiology: true,
+          ckdStage: true,
+          albuminuria: true,
+          comorbidities: true,
+          medications: {
+            where: { status: 'ACTIVE' },
+            select: { name: true, dose: true, frequency: true },
+          },
+        },
+      },
+    },
   })
 
   if (!evolution || evolution.patientId !== id) notFound()
