@@ -18,13 +18,29 @@ export type Macro = {
  * Organizadas por categoria.
  */
 export const MACROS: Macro[] = [
-  // --- Anamnese / queixa principal ---
+  // --- Anamnese / queixa principal — atalhos rápidos ---
   { key: '.ret',   value: 'Retorno ambulatorial. Paciente refere ' },
   { key: '.sem',   value: 'Sem queixas no momento. ' },
   { key: '.eas',   value: 'Assintomático no período. ' },
   { key: '.inc',   value: 'Inchaço em membros inferiores. ' },
   { key: '.disp',  value: 'Dispneia aos médios esforços. ' },
   { key: '.hip',   value: 'Hipertensão arterial de difícil controle. ' },
+  { key: '.nic',   value: 'Nictúria. ' },
+  { key: '.hema',  value: 'Hematúria macroscópica. ' },
+  { key: '.olig',  value: 'Oligúria nas últimas 24h. ' },
+  { key: '.colic', value: 'Cólica nefrética à direita / esquerda. ' },
+
+  // --- Anamnese estruturada por diagnóstico (templates completos) ---
+  { key: '.qdrc',  value: 'Retorno para acompanhamento de DRC. Paciente refere controle pressórico regular em domicílio. Nega dispneia, edema progressivo ou alteração do volume urinário. Dieta hipossódica sendo seguida. Medicações em uso sem intercorrências. Aguardando exames laboratoriais para avaliação de progressão da DRC.' },
+  { key: '.qhas',  value: 'Retorno para controle de HAS. Monitorização domiciliar da PA realizada — médias referidas pelo paciente: ___/___mmHg. Nega cefaleia occipital, escotomas ou palpitações. Refere boa adesão ao esquema anti-hipertensivo. Sem edema de MMII. Dieta hipossódica em andamento.' },
+  { key: '.qdm',   value: 'Retorno para controle de Nefropatia Diabética. Monitorização glicêmica domiciliar — médias referidas: ___mg/dL. Nega hipoglicemias. Refere boa adesão ao iSGLT2 / IECA. Controle pressórico em domicílio: ___/___mmHg. Sem sinais de infecção urinária, retenção urinária ou lesão em pé diabético.' },
+  { key: '.qglom', value: 'Retorno para acompanhamento de glomerulopatia. Paciente refere evolução do edema: ___ (melhorou / piorou / estável). Diurese ___ mL/dia estimado. Nega hematúria macroscópica recente. Medicações imunossupressoras em uso sem efeitos colaterais referidos. Aguardando resultado de ___ para ajuste terapêutico.' },
+  { key: '.qlit',  value: 'Retorno para acompanhamento de nefrolitíase. Sem episódios de cólica nefrética desde a última consulta. Hidratação oral: ___ L/dia referido pelo paciente. Diurese estimada: ___ mL/dia. Dieta hipossódica e normoproteica em andamento. Sem disúria, hematúria ou sintomas de infecção urinária.' },
+
+  // --- Achados ao exame físico ---
+  { key: '.ef',    value: 'Exame físico: paciente em BEG, lúcido e orientado, corado, hidratado, acianótico, anictérico. PA: ___/___mmHg. FC: ___bpm. Peso: ___kg. Edema de MMII: ' },
+  { key: '.efsem', value: 'Exame físico: paciente em BEG, lúcido e orientado, sem edema periférico, sem sinais de sobrecarga de volume. PA controlada. ' },
+  { key: '.efed',  value: 'Exame físico: edema de MMII _+/4+ bilateral, fóvea presente até ___. Macicez à percussão de flancos. PA: ___/___mmHg. ' },
 
   // --- Evolução / impressão clínica — diagnósticos ---
   { key: '.drc',   value: 'Doença Renal Crônica ' },
@@ -48,9 +64,20 @@ export const MACROS: Macro[] = [
 
   // --- Impressão clínica — achados laboratoriais ---
   { key: '.tfgest', value: 'TFGe estável em relação à consulta anterior. ' },
+  { key: '.tfgq',   value: 'Queda da TFGe em relação à última coleta — progressão da DRC. ' },
+  { key: '.tfgm',   value: 'Melhora da TFGe em relação à última coleta. ' },
   { key: '.anemrc', value: 'Anemia normocrômica normocítica compatível com doença renal crônica. ' },
+  { key: '.anemfe', value: 'Anemia ferropriva — TSAT reduzida, ferritina baixa. Indicar reposição de ferro. ' },
   { key: '.dmo',    value: 'Distúrbio mineral-ósseo da DRC — PTH elevado, vitamina D insuficiente. ' },
   { key: '.acidmet',value: 'Acidose metabólica leve a moderada (HCO₃ reduzido). ' },
+  { key: '.hipk',   value: 'Hipercalemia — K⁺ elevado, necessita ajuste dietético e/ou terapêutico. ' },
+  { key: '.hypok',  value: 'Hipocalemia — K⁺ reduzido, avaliar causa e repor se necessário. ' },
+  { key: '.prot',   value: 'Proteinúria em níveis nefróticos (ACR > 3000 mg/g). ' },
+  { key: '.protr',  value: 'Redução da proteinúria em relação à última coleta — resposta ao tratamento. ' },
+  { key: '.protp',  value: 'Piora da proteinúria em relação à última coleta — reavaliar estratégia. ' },
+  // --- Impressão clínica — templates de avaliação integrada ---
+  { key: '.avdrc',  value: 'Paciente com DRC em estadiamento ___, clinicamente estável. TFGe ___ (estável / em queda). Proteinúria: ACR ___mg/g (___ vs anterior). Controle pressórico ___ (adequado / inadequado). Anemia ___ (estável / piorando). Sem intercorrências desde a última consulta.' },
+  { key: '.avnd',   value: 'Nefropatia Diabética com TFGe ___ e ACR ___mg/g. Controle glicêmico: HbA1c ___% (meta < 7%). Controle pressórico: PA ___/___mmHg (meta < 130/80). Uso de iSGLT2: ___ (sim / não). IECA/BRA: ___ (sim / não). Avaliação de progressão: ' },
 
   // --- Conduta ---
   { key: '.ret1',  value: 'Retorno em 1 mês para reavaliação. ' },

@@ -1,10 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { EXAM_PACKAGES } from '@/lib/examPanels'
+import { getKdigoExamPanel } from '@/components/KdigoAlert'
 
 type Props = {
   diagnosisKey: string
+  /** TFG atual para montar o pacote KDIGO dinâmico */
+  tfg?: number | null
+  /** ACR atual para montar o pacote KDIGO dinâmico */
+  acr?: number | null
 }
 
 const DEFAULT_PACKAGE: Record<string, string> = {
@@ -16,21 +21,51 @@ const DEFAULT_PACKAGE: Record<string, string> = {
   CONSULTA_GERAL:       'rotina',
 }
 
-export default function ExamOrderPanel({ diagnosisKey }: Props) {
-  const defaultKey = DEFAULT_PACKAGE[diagnosisKey] ?? 'rotina'
+export default function ExamOrderPanel({ diagnosisKey, tfg, acr }: Props) {
+  // Monta pacote KDIGO dinâmico se houver TFG e ACR
+  const kdigoPackage = useMemo(() => {
+    if (tfg == null || acr == null) return null
+    return getKdigoExamPanel(tfg, acr)
+  }, [tfg, acr])
+
+  // Pacote padrão: se há KDIGO disponível, começa por ele; caso contrário, usa padrão por diagnóstico
+  const defaultKey = kdigoPackage ? 'kdigo' : (DEFAULT_PACKAGE[diagnosisKey] ?? 'rotina')
   const [selectedKey, setSelectedKey] = useState(defaultKey)
   const [copied, setCopied] = useState(false)
 
-  const pkg = EXAM_PACKAGES.find(p => p.key === selectedKey)
+  // Monta lista completa de opções: KDIGO (se disponível) + pacotes fixos
+  const allOptions = useMemo(() => {
+    const base = EXAM_PACKAGES.map(p => ({
+      key: p.key,
+      label: p.label,
+      description: p.description,
+      exams: p.exams,
+    }))
+    if (!kdigoPackage) return base
+    return [
+      {
+        key: 'kdigo',
+        label: `KDIGO ${kdigoPackage.stagLabel}`,
+        description: `Painel baseado no estadiamento ${kdigoPackage.stagLabel} — retorno ${kdigoPackage.followUpFrequency}`,
+        exams: kdigoPackage.exams,
+      },
+      ...base,
+    ]
+  }, [kdigoPackage])
+
+  const selectedPkg = allOptions.find(p => p.key === selectedKey)
 
   async function handleCopy() {
-    if (!pkg) return
+    if (!selectedPkg) return
     try {
-      await navigator.clipboard.writeText(pkg.exams.join('\n'))
+      const text = selectedPkg.exams.join('\n')
+      await navigator.clipboard.writeText(text)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch { /* fallback silencioso */ }
   }
+
+  const isKdigo = selectedKey === 'kdigo'
 
   return (
     <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
@@ -39,8 +74,8 @@ export default function ExamOrderPanel({ diagnosisKey }: Props) {
           <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
             Pedido de Exames Laboratoriais
           </h2>
-          {pkg && (
-            <p className="text-xs text-gray-400 mt-0.5">{pkg.description}</p>
+          {selectedPkg && (
+            <p className="text-xs text-gray-400 mt-0.5">{selectedPkg.description}</p>
           )}
         </div>
         <select
@@ -48,18 +83,31 @@ export default function ExamOrderPanel({ diagnosisKey }: Props) {
           onChange={e => setSelectedKey(e.target.value)}
           className="border border-gray-400 rounded-lg px-3 py-1.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs"
         >
-          {EXAM_PACKAGES.map(p => (
+          {allOptions.map(p => (
             <option key={p.key} value={p.key}>{p.label}</option>
           ))}
         </select>
       </div>
 
-      {pkg && (
+      {selectedPkg && (
         <ul className="space-y-1">
-          {pkg.exams.map(exam => (
-            <li key={exam} className="text-sm text-gray-700">{exam}</li>
+          {selectedPkg.exams.map(exam => (
+            <li key={exam} className="flex items-center gap-2 text-sm text-gray-700">
+              {isKdigo && (
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
+              )}
+              {exam}
+            </li>
           ))}
         </ul>
+      )}
+
+      {isKdigo && kdigoPackage && (
+        <p className="text-xs text-blue-600 bg-blue-50 rounded-lg px-3 py-2">
+          Painel gerado automaticamente pelo motor KDIGO para estadiamento{' '}
+          <strong>{kdigoPackage.stagLabel}</strong>.
+          Retorno sugerido: <strong>{kdigoPackage.followUpFrequency}</strong>.
+        </p>
       )}
 
       <button

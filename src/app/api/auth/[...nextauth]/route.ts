@@ -1,4 +1,2 @@
-import { handlers } from '@/auth'
-
-// Auth.js v5 — expõe GET e POST para o NextAuth handler
-export const { GET, POST } = handlers
+// Rota next-auth removida — autenticação migrada para Supabase.
+export {}

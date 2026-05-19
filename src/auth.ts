@@ -1,14 +1,4 @@
-import NextAuth from 'next-auth'
-import Google from 'next-auth/providers/google'
-
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  pages: {
-    signIn: '/login',
-  },
-})
+// Este arquivo foi substituído pela autenticação Supabase.
+// Mantido apenas para evitar erros de import residuais.
+// Ver: src/lib/supabase/server.ts e src/lib/supabase/client.ts
+export {}

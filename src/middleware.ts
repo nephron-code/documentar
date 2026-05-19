@@ -1,33 +1,58 @@
-import { auth } from '@/auth'
-import { NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Middleware de autenticação — protege todas as rotas sob /patients.
- * Rotas públicas: /login, /api/auth/**, arquivos estáticos.
+ * Middleware de autenticação — Supabase Auth.
+ * Protege todas as rotas sob /patients.
+ * Rotas públicas: /, /login, arquivos estáticos.
  */
-export default auth((req) => {
-  const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
 
-  // Redireciona usuário autenticado que acessa a raiz direto para /patients
-  if (pathname === '/' && isLoggedIn) {
-    return NextResponse.redirect(new URL('/patients', req.url))
+  // Cria cliente Supabase que atualiza cookies de sessão automaticamente
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // IMPORTANTE: não chamar getUser() em vez de getSession() para evitar spoofing
+  const { data: { user } } = await supabase.auth.getUser()
+  const { pathname } = request.nextUrl
+
+  // Usuário autenticado na raiz → /patients
+  if (pathname === '/' && user) {
+    return NextResponse.redirect(new URL('/patients', request.url))
   }
 
-  // Redireciona usuário já autenticado que tenta acessar /login → /patients
-  if (isLoggedIn && pathname === '/login') {
-    return NextResponse.redirect(new URL('/patients', req.url))
+  // Usuário autenticado tentando acessar /login → /patients
+  if (pathname === '/login' && user) {
+    return NextResponse.redirect(new URL('/patients', request.url))
   }
 
-  // Bloqueia acesso não-autenticado a /patients
-  if (!isLoggedIn && pathname.startsWith('/patients')) {
-    return NextResponse.redirect(new URL('/login', req.url))
+  // Usuário não autenticado tentando acessar /patients → /login
+  if (pathname.startsWith('/patients') && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  return NextResponse.next()
-})
+  return supabaseResponse
+}
 
 export const config = {
-  // Exclui arquivos estáticos e imagens do Next.js do middleware
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|ico)$).*)'],
 }

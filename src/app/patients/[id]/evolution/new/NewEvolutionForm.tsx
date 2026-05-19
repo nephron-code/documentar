@@ -543,7 +543,6 @@ export default function NewEvolutionForm({
               <KdigoAlert
                 tfg={lastTfg}
                 acr={lastAcr}
-                onAppendExams={(text) => setConductText(prev => prev + text)}
               />
             )}
             {/* Aviso quando faltam dados para o motor KDIGO */}
@@ -620,9 +619,11 @@ export default function NewEvolutionForm({
             </div>
           </section>
 
-          {/* Pedido de exames — seção independente da conduta */}
+          {/* Pedido de exames — integrado ao motor KDIGO quando disponível */}
           <ExamOrderPanel
             diagnosisKey={patient.diagnosis}
+            tfg={lastTfg}
+            acr={lastAcr}
           />
 
           {error && (

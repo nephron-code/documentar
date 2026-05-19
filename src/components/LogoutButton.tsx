@@ -1,24 +1,25 @@
-import { signOut } from '@/auth'
+'use client'
 
-/**
- * Botão de logout — Server Component com Server Action.
- * Não precisa de 'use client' nem de SessionProvider.
- */
+import { useRouter } from 'next/navigation'
+import { createSupabaseClient } from '@/lib/supabase/client'
+
 export default function LogoutButton() {
+  const router = useRouter()
+
+  async function handleLogout() {
+    const supabase = createSupabaseClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
   return (
-    <form
-      action={async () => {
-        'use server'
-        await signOut({ redirectTo: '/login' })
-      }}
+    <button
+      onClick={handleLogout}
+      className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
+      title="Sair"
     >
-      <button
-        type="submit"
-        className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
-        title="Sair"
-      >
-        Sair
-      </button>
-    </form>
+      Sair
+    </button>
   )
 }
