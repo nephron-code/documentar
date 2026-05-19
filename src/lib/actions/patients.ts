@@ -10,12 +10,26 @@ import { revalidatePath } from 'next/cache'
 export async function getPatientWithHistory(patientId: string) {
   const patient = await prisma.patient.findUnique({
     where: { id: patientId },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      birthDate: true,
+      sex: true,
+      diagnosis: true,
+      etiology: true,
+      ckdStage: true,
+      albuminuria: true,
+      comorbidities: true,
       evolutions: {
         orderBy: { consultationDate: 'desc' },
       },
       labResults: {
         orderBy: { examDate: 'desc' },
+      },
+      medications: {
+        where: { status: 'ACTIVE' },
+        orderBy: { prescribedAt: 'asc' },
+        select: { id: true, name: true, dose: true, frequency: true },
       },
     },
   })
@@ -94,7 +108,6 @@ export async function createPatient(data: {
   ckdStage?: string
   albuminuria?: string
   comorbidities: string[]
-  medications: string[]
 }) {
   // Verifica duplicata: mesmo nome (case-insensitive) + mesma data de nascimento
   const existing = await prisma.patient.findFirst({
@@ -118,21 +131,8 @@ export async function createPatient(data: {
       ckdStage: data.ckdStage as any ?? null,
       albuminuria: data.albuminuria as any ?? null,
       comorbidities: data.comorbidities,
-      medications: data.medications,
     },
   })
-}
-
-/**
- * Atualiza a lista de medicamentos em uso do paciente.
- * Chamada ao salvar consulta quando o médico edita a lista de medicamentos.
- */
-export async function updatePatientMedications(patientId: string, medications: string[]) {
-  await prisma.patient.update({
-    where: { id: patientId },
-    data: { medications },
-  })
-  revalidatePath(`/patients/${patientId}`)
 }
 /**
  * Busca o texto de exames de imagem da última consulta do paciente.
@@ -232,7 +232,6 @@ export async function updatePatient(patientId: string, data: {
   ckdStage?: string
   albuminuria?: string
   comorbidities: string[]
-  medications: string[]
 }) {
   // Verifica duplicata excluindo o próprio paciente
   const existing = await prisma.patient.findFirst({
@@ -258,7 +257,6 @@ export async function updatePatient(patientId: string, data: {
       ckdStage: (data.ckdStage as any) || null,
       albuminuria: (data.albuminuria as any) || null,
       comorbidities: data.comorbidities,
-      medications: data.medications,
     },
   })
   revalidatePath(`/patients/${patientId}`)

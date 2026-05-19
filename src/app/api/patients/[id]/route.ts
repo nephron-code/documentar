@@ -18,7 +18,6 @@ export async function GET(
       ckdStage: true,
       albuminuria: true,
       comorbidities: true,
-      medications: true,
     },
   })
   if (!patient) return NextResponse.json({ error: 'Not found' }, { status: 404 })

@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createPatient } from '@/lib/actions/patients'
-import MedicationList from '@/components/MedicationList'
 
 const DIAGNOSES = [
   { value: 'DRC', label: 'DRC' },
@@ -31,7 +30,6 @@ export default function NewPatientPage() {
   const [error, setError] = useState('')
   const [selectedComorbidities, setSelectedComorbidities] = useState<string[]>([])
   const [customComorbidity, setCustomComorbidity] = useState('')
-  const [selectedMedications, setSelectedMedications] = useState<string[]>([])
   const [diagnosis, setDiagnosis] = useState('')
 
   function toggleComorbidity(c: string) {
@@ -64,7 +62,6 @@ export default function NewPatientPage() {
       ckdStage: form.get('ckdStage') as string || undefined,
       albuminuria: form.get('albuminuria') as string || undefined,
       comorbidities: getAllComorbidities(),
-      medications: selectedMedications,
     }
 
     try {
@@ -240,18 +237,6 @@ export default function NewPatientPage() {
                 className="w-full border border-gray-400 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-          </section>
-
-          {/* Medicamentos em uso */}
-          <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-            <div>
-              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Medicamentos em uso</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Lista atual de medicamentos do paciente.</p>
-            </div>
-            <MedicationList
-              value={selectedMedications}
-              onChange={setSelectedMedications}
-            />
           </section>
 
           {error && (

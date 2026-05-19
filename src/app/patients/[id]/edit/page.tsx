@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { updatePatient } from '@/lib/actions/patients'
-import MedicationList from '@/components/MedicationList'
 import { use } from 'react'
 
 const DIAGNOSES = [
@@ -37,7 +36,6 @@ type Patient = {
   ckdStage?: string | null
   albuminuria?: string | null
   comorbidities: string[]
-  medications: string[]
 }
 
 // Fetches patient data client-side — simpler than async RSC for an edit form
@@ -68,7 +66,6 @@ export default function EditPatientPage({
   const [albuminuria, setAlbuminuria] = useState('')
   const [selectedComorbidities, setSelectedComorbidities] = useState<string[]>([])
   const [customComorbidity, setCustomComorbidity] = useState('')
-  const [medications, setMedications] = useState<string[]>([])
 
   useEffect(() => {
     fetchPatient(id).then(p => {
@@ -85,7 +82,6 @@ export default function EditPatientPage({
       const custom = p.comorbidities.filter(c => !COMORBIDITIES_OPTIONS.includes(c))
       setSelectedComorbidities(known)
       setCustomComorbidity(custom.join(', '))
-      setMedications(p.medications)
       setFetching(false)
     })
   }, [id, router])
@@ -112,7 +108,6 @@ export default function EditPatientPage({
         ckdStage: ckdStage || undefined,
         albuminuria: albuminuria || undefined,
         comorbidities: getAllComorbidities(),
-        medications,
       })
       router.push(`/patients/${id}`)
     } catch (err) {
@@ -236,12 +231,6 @@ export default function EditPatientPage({
               <input value={customComorbidity} onChange={e => setCustomComorbidity(e.target.value)}
                 placeholder="Ex: Neoplasia, Hepatopatia..." className={inputClass} />
             </div>
-          </section>
-
-          {/* Medicamentos */}
-          <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Medicamentos em uso</h2>
-            <MedicationList value={medications} onChange={setMedications} />
           </section>
 
           {error && (
