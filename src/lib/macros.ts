@@ -107,6 +107,26 @@ export const MACROS: Macro[] = [
   { key: '.fav',    value: 'Encaminhar cirurgia vascular para confecção de fístula arteriovenosa. ' },
   { key: '.trs',    value: 'Discutir modalidades de terapia renal substitutiva (hemodiálise, diálise peritoneal, transplante). ' },
 
+  // --- HAS Resistente — anamnese e investigação ---
+  { key: '.qhasr',   value: 'Retorno para investigação de HAS resistente. PA domiciliar: ___/___mmHg (média de ___ dias). Refere adesão ao esquema atual: [boa / parcial]. Nega uso de AINEs, anticoncepcionais ou outros fármacos que elevam PA. Sem sintomas sugestivos de apneia do sono. ' },
+  { key: '.adhasr',  value: 'Adesão ao esquema anti-hipertensivo: [boa / parcial / não adesão confirmada — ___].' },
+  { key: '.tecpa',   value: 'Técnica de medida da PA: repouso de 5 min, braço direito, manguito adequado, média de 2 medidas. PA consultório: ___/___mmHg. ' },
+  { key: '.mapa',    value: 'MAPA 24h: PA média diurna ___/___mmHg, noturna ___/___mmHg. Descenso noturno: [normal / atenuado / ausente]. ' },
+  { key: '.mrpa',    value: 'MRPA: média matinal ___/___mmHg, vespertina ___/___mmHg (referida pelo paciente). ' },
+  { key: '.saos',    value: 'Suspeita de SAOS: ronco, apneias observadas, sonolência diurna, IMC > 30. Solicitar polissonografia. ' },
+  { key: '.haldos',  value: 'Investigar hiperaldosteronismo primário: solicitar aldosterona plasmática e atividade de renina (ou renina direta) em ortostatismo, sem suspender anti-hipertensivos (exceto espironolactona 4 semanas antes). ' },
+  { key: '.doppler', value: 'Solicitar Doppler de artérias renais para exclusão de estenose vasculorrenal. ' },
+  { key: '.feocro',  value: 'Investigar feocromocitoma: metanefrinas urinárias de 24h ou metanefrinas plasmáticas livres. ' },
+  { key: '.espadd',  value: 'Adicionar espironolactona [25 mg/dia] ao esquema atual. Monitorar K⁺ e creatinina em 2–4 semanas. Contraindicada se TFGe < 30 ou K⁺ > 5,0 mEq/L. ' },
+
+  // --- HAS Resistente — conduta e orientações ---
+  { key: '.hasrond',  value: 'Orientações para HAS resistente: dieta hipossódica (< 2 g/dia), perda de peso, exercício aeróbico regular, limitar álcool, cessar tabagismo. ' },
+  { key: '.hasrret',  value: 'Retorno em ___ semanas com MAPA, K⁺, creatinina e diário de PA domiciliar. ' },
+  { key: '.diurtico', value: 'Otimizar diurético: clortalidona [12,5–25 mg] ou indapamida [1,5 mg] preferíveis à hidroclorotiazida (maior duração de ação). ' },
+  { key: '.bloqca',   value: 'Bloqueador de canal de cálcio di-hidropiridínico: [anlodipino 5–10 mg] — associar ao IECA/BRA. ' },
+  { key: '.hasrescl', value: 'Avaliação de causa secundária [em andamento / concluída / descartada]: SAOS ___, hiperaldosteronismo ___, estenose AR ___, doença renal ___. ' },
+  { key: '.avhasr',   value: 'HAS resistente — PA não controlada em uso de ___ anti-hipertensivos (___). Pseudo-resistência excluída. Causas secundárias: [em investigação / descartadas]. Proposta de ajuste: ___.' },
+
   // --- Medicações frequentes ---
   { key: '.enal',  value: 'Enalapril ' },
   { key: '.losa',  value: 'Losartana ' },
@@ -123,6 +143,15 @@ export const MACROS: Macro[] = [
   { key: '.alop',  value: 'Alopurinol ' },
   { key: '.citr',  value: 'Citrato de potássio ' },
   { key: '.seve',  value: 'Sevelamer ' },
+  // HAS resistente
+  { key: '.chlort', value: 'Clortalidona ' },
+  { key: '.indap',  value: 'Indapamida ' },
+  { key: '.cloni',  value: 'Clonidina ' },
+  { key: '.hidral', value: 'Hidralazina ' },
+  { key: '.mino',   value: 'Minoxidil ' },
+  { key: '.doxaz',  value: 'Doxazosina ' },
+  { key: '.bisop',  value: 'Bisoprolol ' },
+  { key: '.carve',  value: 'Carvedilol ' },
 ]
 
 /**

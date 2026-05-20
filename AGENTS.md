@@ -93,7 +93,7 @@ Stack: Next.js 16 (App Router) · TypeScript strict · Tailwind CSS · Prisma 7 
 **Arquivos sob sua responsabilidade:**
 - `src/lib/kdigo.ts`
 - `src/lib/examPanels.ts`
-- `src/lib/generateEHRText.ts`
+- `src/lib/composeConsultationNote.ts` (renomeado de `generateEHRText.ts`)
 - `src/components/KdigoAlert.tsx`
 - `src/components/ExamOrderPanel.tsx`
 
@@ -103,7 +103,7 @@ Stack: Next.js 16 (App Router) · TypeScript strict · Tailwind CSS · Prisma 7 
 - `getKdigoRecommendations(tfg, acr)` — classificação G1–G5 × A1–A3, matriz de risco, painel de exames.
 - Gasometria venosa é **opcional** (toggle no KdigoAlert) — não incluir por padrão.
 - Pacotes de exames em `EXAM_PACKAGES` — organizados por frequência clínica, não por diagnóstico.
-- `generateEHRText` produz saída compacta: uma linha por data de exame com abreviaturas (`Cr`, `Ur`, `TFG`, `K`, etc.) — apenas para a nota de consulta que o médico cola no prontuário externo, nunca para pedidos ao paciente.
+- `composeConsultationNote` produz saída compacta: uma linha por data de exame com abreviaturas (`Cr`, `Ur`, `TFG`, `K`, etc.) — apenas para a nota de consulta que o médico cola no prontuário externo, nunca para pedidos ao paciente.
 - Pedidos de exame ao paciente: nomes completos, sem abreviaturas, sem símbolos de marcação.
 
 **Pacotes de exames disponíveis:**

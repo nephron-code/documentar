@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { generateEHRText } from '@/lib/generateEHRText'
+import { composeConsultationNote } from '@/lib/composeConsultationNote'
 import CopyButton from '@/components/CopyButton'
 import PrintButton from '@/components/PrintButton'
 
@@ -57,7 +57,7 @@ export default async function EvolutionPage({
     orderBy: { examDate: 'desc' },
   })
 
-  const ehrText = generateEHRText(evolution.patient, evolution, labResults)
+  const ehrText = composeConsultationNote(evolution.patient, evolution, labResults)
 
   return (
     <main className="min-h-screen bg-gray-50">

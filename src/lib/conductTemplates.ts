@@ -21,6 +21,7 @@ type DiagnosisKey =
   | 'GLOMERULOPATIA'
   | 'NEFROLITIASE'
   | 'CONSULTA_GERAL'
+  | 'HAS_RESISTENTE'
 
 // ── Templates por estágio G (para diagnósticos com DRC) ───────────────────
 
@@ -129,6 +130,45 @@ const DIAGNOSIS_TEMPLATES: Partial<Record<DiagnosisKey, string>> = {
 - Retorno conforme necessidade clínica com exames.`,
 }
 
+// ── Template HAS Resistente ───────────────────────────────────────────────
+// Baseado em: ACC/AHA 2019, KDIGO CKD Blood Pressure 2021, ESC/ESH 2023
+
+/**
+ * Template de conduta para HAS resistente — investigação e manejo estruturado.
+ * HAS resistente = PA não controlada em uso de ≥ 3 anti-hipertensivos (incluindo diurético),
+ * ou controlada com ≥ 4 fármacos.
+ *
+ * Variáveis: ___ para valores, [opção A / opção B] para escolhas.
+ */
+export const templateHASResistente = `INVESTIGAÇÃO DE HAS RESISTENTE
+
+Excluir pseudo-resistência:
+- Confirmar adesão medicamentosa: [boa / parcial / não adesão identificada].
+- Técnica de medida: [adequada / inadequada — padronizar]. MAPA/MRPA: ___.
+- Efeito do avental branco: [excluído / suspeito — solicitar MAPA].
+- Uso de: [AINEs / anticoncepcionais orais / simpaticomiméticos / descongestionantes / estimulantes].
+- Ingestão de sódio: [conforme / excessiva — orientar < 2 g/dia].
+- Consumo de alcaçuz, álcool: [ausente / presente].
+
+Investigação de causas secundárias:
+- Síndrome da apneia obstrutiva do sono (SAOS): [descartada / suspeita — solicitar polissonografia].
+- Hiperaldosteronismo primário: [descartar — solicitar aldosterona e renina em posição ortostática].
+- Estenose de artéria renal: [descartada / suspeita — Doppler renal ou angioTC].
+- Doença renal parenquimatosa: [descartada / creatinina ___, TFGe ___, ACR ___].
+- Feocromocitoma: [descartada / suspeita — metanefrinas urinárias].
+- Hipertireoidismo/hipotireoidismo: [TSH ___].
+- Hipercortisolismo: [descartado / suspeito].
+- Coarctação de aorta: [descartada].
+
+Conduta:
+- Esquema atual: [listar medicações e doses].
+- Ajuste proposto: [adicionar / trocar / titular].
+- Espironolactona [25–50 mg/dia]: [indicar se K⁺ < 4,5 mEq/L e TFGe > 30].
+- Monitorar K⁺ e creatinina em ___ semanas após ajuste.
+- Manter dieta hipossódica (< 2 g/dia), perda de peso se IMC > 25.
+- MAPA para avaliação de controle e variabilidade.
+- Retorno em ___ semanas com exames e diário de PA domiciliar.`
+
 // ── Função principal ──────────────────────────────────────────────────────
 
 /**
@@ -149,6 +189,11 @@ export function getConductTemplate(
       return DRC_BY_STAGE[gStage]
     }
     return DRC_BY_STAGE['G2'] // fallback se não classificado
+  }
+
+  // HAS resistente — template dedicado
+  if (diagnosisKey === 'HAS_RESISTENTE') {
+    return templateHASResistente
   }
 
   // Outros diagnósticos — template específico

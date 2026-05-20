@@ -8,14 +8,14 @@ import KdigoAlert from '@/components/KdigoAlert'
 import ExamOrderPanel from '@/components/ExamOrderPanel'
 import { calcTFGe, calcIdade } from '@/lib/ckd-epi-2021'
 import { useMacroExpander } from '@/hooks/useMacroExpander'
-import { getConductTemplate } from '@/lib/conductTemplates'
+import { getConductTemplate, templateHASResistente } from '@/lib/conductTemplates'
 import MacroPanel from '@/components/MacroPanel'
 import type { MacroRecord } from '@/lib/actions/macros'
 import MedicationAutocomplete from '@/components/MedicationAutocomplete'
 import MedicationList from '@/components/MedicationList'
-type ActiveMedication = { id: string; name: string; dose?: string | null; frequency?: string | null }
-type NewMedicationInput = { name: string; dose?: string; frequency?: string; notes?: string }
+import type { ActiveMedication, NewMedicationInput } from '@/components/MedicationList'
 import DiagnosisEditor from '@/components/DiagnosisEditor'
+import HASResistenteChecklist from '@/components/HASResistenteChecklist'
 import { updatePatientDiagnosis } from '@/lib/actions/patients'
 
 const DIAGNOSIS_LABEL: Record<string, string> = {
@@ -557,6 +557,17 @@ export default function NewEvolutionForm({
               className={inputClass + " resize-none"} />
           </section>
 
+          {/* Checklist HAS Resistente — aparece para diagnósticos de HAS */}
+          {(patient.diagnosis === 'HAS_NEFROSCLEROSE' ||
+            diagnosisUpdate?.diagnosis === 'HAS_NEFROSCLEROSE') && (
+            <HASResistenteChecklist
+              onInsertSummary={text => {
+                setClinicalNote(prev => prev ? prev + '\n\n' + text : text)
+                markDirty()
+              }}
+            />
+          )}
+
           <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Evolução Clínica</h2>
 
@@ -602,16 +613,30 @@ export default function NewEvolutionForm({
                       )}
                       <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .ret3 .mant + espaço</span>
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const template = getConductTemplate(patient.diagnosis, patient.ckdStage)
-                        if (template) setConductText(template)
-                      }}
-                      className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors"
-                    >
-                      ✦ Conduta KDIGO
-                    </button>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const diagKey = diagnosisUpdate?.diagnosis ?? patient.diagnosis
+                          const stageKey = diagnosisUpdate?.ckdStage ?? patient.ckdStage
+                          const template = getConductTemplate(diagKey, stageKey)
+                          if (template) setConductText(template)
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors"
+                      >
+                        ✦ Conduta KDIGO
+                      </button>
+                      {(patient.diagnosis === 'HAS_NEFROSCLEROSE' ||
+                        diagnosisUpdate?.diagnosis === 'HAS_NEFROSCLEROSE') && (
+                        <button
+                          type="button"
+                          onClick={() => setConductText(templateHASResistente)}
+                          className="text-xs text-orange-600 hover:text-orange-800 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-2.5 py-1 rounded-lg transition-colors"
+                        >
+                          ⚠ HAS Resistente
+                        </button>
+                      )}
+                    </div>
                   </div>
                   <MedicationAutocomplete
                     name="conductText"
