@@ -2,8 +2,8 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'NefroDoc — Prontuário de Nefrologia',
-  description: 'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções e exames com diretrizes KDIGO integradas.',
+  title: 'NefroDoc — Copiloto de Consulta em Nefrologia',
+  description: 'Copiloto determinístico para consultas de Nefrologia ambulatorial. Aplica diretrizes KDIGO, gera notas revisáveis e acelera a documentação clínica.',
 }
 
 const features = [
@@ -58,8 +58,8 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
       </svg>
     ),
-    title: 'Texto de Prontuário',
-    description: 'Geração automática de texto compacto para o prontuário com abreviações clínicas padronizadas — sem dependência de IA externa.',
+    title: 'Nota pronta para colar',
+    description: 'Geração automática de nota compacta para colar no sistema que você já usa — abreviações clínicas padronizadas, sem IA externa.',
   },
 ]
 
@@ -93,11 +93,14 @@ export default function SplashPage() {
             Nefrologia ambulatorial
           </span>
           <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">
-            Prontuário eletrônico<br />para Nefrologia
+            Copiloto de consulta<br />para Nefrologia
           </h1>
           <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10">
-            Gerencie pacientes, evoluções clínicas e exames laboratoriais com
-            diretrizes KDIGO integradas e geração automática de texto de prontuário.
+            Aplica diretrizes KDIGO, organiza dados clínicos e gera uma nota revisável
+            para colar no sistema que você já usa — tudo determinístico, sem IA externa.
+          </p>
+          <p className="text-xs text-gray-400 max-w-md mx-auto mb-8">
+            Ferramenta de apoio. Revise antes de copiar. Não substitui o prontuário nem a decisão médica.
           </p>
           <Link
             href="/login"

@@ -8,8 +8,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # NefroDoc — Guia de Agentes
 
-Prontuário eletrônico para Nefrologia ambulatorial.
-Stack: Next.js 15 (App Router) · TypeScript strict · Tailwind CSS · Prisma 7 · PostgreSQL (Supabase)
+**Copiloto determinístico de consulta em Nefrologia ambulatorial.**
+O NefroDoc organiza dados clínicos, aplica regras nefrológicas determinísticas e gera uma nota revisável para colar no prontuário externo que o médico já usa. Não é um prontuário eletrônico completo. Não decide pelo médico. Não usa LLM para gerar texto clínico.
+
+Stack: Next.js 16 (App Router) · TypeScript strict · Tailwind CSS · Prisma 7 · PostgreSQL (Supabase)
+
+> **Regra de framing:** agentes nunca devem descrever o NefroDoc como "prontuário eletrônico". Usar "copiloto de consulta", "apoio à consulta nefrológica" ou "nota pronta para colar no prontuário externo". O app menciona "prontuário" apenas como destino externo do texto gerado.
 
 ---
 
@@ -99,7 +103,7 @@ Stack: Next.js 15 (App Router) · TypeScript strict · Tailwind CSS · Prisma 7 
 - `getKdigoRecommendations(tfg, acr)` — classificação G1–G5 × A1–A3, matriz de risco, painel de exames.
 - Gasometria venosa é **opcional** (toggle no KdigoAlert) — não incluir por padrão.
 - Pacotes de exames em `EXAM_PACKAGES` — organizados por frequência clínica, não por diagnóstico.
-- `generateEHRText` produz saída compacta: uma linha por data de exame com abreviaturas (`Cr`, `Ur`, `TFG`, `K`, etc.) — apenas para o texto do prontuário interno, nunca para pedidos ao paciente.
+- `generateEHRText` produz saída compacta: uma linha por data de exame com abreviaturas (`Cr`, `Ur`, `TFG`, `K`, etc.) — apenas para a nota de consulta que o médico cola no prontuário externo, nunca para pedidos ao paciente.
 - Pedidos de exame ao paciente: nomes completos, sem abreviaturas, sem símbolos de marcação.
 
 **Pacotes de exames disponíveis:**

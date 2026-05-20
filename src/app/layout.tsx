@@ -15,24 +15,24 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'NefroDoc — Prontuário de Nefrologia',
+    default: 'NefroDoc — Copiloto de Consulta em Nefrologia',
     template: '%s — NefroDoc',
   },
   description:
-    'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções clínicas e exames com diretrizes KDIGO integradas.',
+    'Copiloto determinístico para consultas de Nefrologia ambulatorial. Aplica diretrizes KDIGO, gera notas revisáveis e agiliza a documentação clínica.',
   openGraph: {
-    title: 'NefroDoc — Prontuário de Nefrologia',
+    title: 'NefroDoc — Copiloto de Consulta em Nefrologia',
     description:
-      'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções clínicas e exames com diretrizes KDIGO integradas.',
+      'Copiloto determinístico para consultas de Nefrologia ambulatorial. Aplica diretrizes KDIGO, gera notas revisáveis e agiliza a documentação clínica.',
     siteName: 'NefroDoc',
     locale: 'pt_BR',
     type: 'website',
   },
   twitter: {
     card: 'summary',
-    title: 'NefroDoc — Prontuário de Nefrologia',
+    title: 'NefroDoc — Copiloto de Consulta em Nefrologia',
     description:
-      'Prontuário eletrônico para Nefrologia ambulatorial. Gerencie pacientes, evoluções clínicas e exames com diretrizes KDIGO integradas.',
+      'Copiloto determinístico para consultas de Nefrologia ambulatorial. Aplica diretrizes KDIGO, gera notas revisáveis e agiliza a documentação clínica.',
   },
   icons: {
     icon: '/icon.svg',

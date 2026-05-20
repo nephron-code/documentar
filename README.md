@@ -1,15 +1,19 @@
 # NefroDoc
 
-**Prontuário eletrônico para Nefrologia ambulatorial**
+**Copiloto determinístico de consulta em Nefrologia ambulatorial**
 
-NefroDoc é uma aplicação web voltada para nefrologistas no ambulatório. O foco principal é agilizar a documentação clínica, rastrear exames laboratoriais de forma longitudinal e aplicar as diretrizes do KDIGO 2024 de forma nativa — sem depender de nenhuma IA externa para gerar texto.
+NefroDoc é uma ferramenta de apoio à consulta nefrológica. Ela organiza dados clínicos, aplica regras das diretrizes KDIGO de forma determinística e gera uma nota revisável para colar no prontuário que o médico já utiliza.
+
+> **O NefroDoc não é um prontuário eletrônico.** Não substitui o sistema oficial de documentação, não contém trilha jurídico-documental completa e não decide pelo médico. É um atalho de consulta: o médico usa, revisa e cola o texto onde quiser.
+
+**Zero IA externa.** Todo texto gerado é produzido por template literals e regras determinísticas — previsível, auditável e sem risco de alucinação.
 
 ---
 
 ## Funcionalidades
 
 - **Cadastro e gestão de pacientes** com diagnóstico, etiologia e comorbidades
-- **Evolução clínica (SOAP)** com gerador automático de texto para prontuário em texto livre
+- **Evolução clínica (SOAP)** com gerador automático de nota revisável para colar no prontuário externo
 - **Calculadora de TFGe** inline (CKD-EPI 2021) com estadiamento automático CKD G1–G5D × A1–A3
 - **Motor clínico KDIGO** — matriz de risco, conduta por estágio, frequência de retorno sugerida
 - **Rastreamento longitudinal de exames** com datas independentes da consulta

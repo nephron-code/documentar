@@ -14,7 +14,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-semibold text-gray-900">NefroDoc</h1>
-          <p className="text-sm text-gray-500 mt-1">Prontuário de Nefrologia</p>
+          <p className="text-sm text-gray-500 mt-1">Copiloto de Consulta em Nefrologia</p>
         </div>
 
         <LoginForm />

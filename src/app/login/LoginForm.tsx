@@ -36,7 +36,7 @@ export default function LoginForm() {
     <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
       <h2 className="text-base font-medium text-gray-900 mb-1">Acesso ao sistema</h2>
       <p className="text-sm text-gray-500 mb-6">
-        Entre com seu e-mail e senha para acessar os prontuários.
+        Entre com seu e-mail e senha para acessar o copiloto.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">

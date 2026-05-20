@@ -118,10 +118,13 @@ export default async function EvolutionPage({
         <section className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Texto para Prontuário
+              Nota de Consulta — pronta para colar
             </h2>
             <CopyButton text={ehrText} />
           </div>
+          <p className="text-xs text-gray-400 mb-3">
+            Ferramenta de apoio. Revise antes de copiar. Não substitui o prontuário nem a decisão médica.
+          </p>
           <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono bg-gray-50 rounded-lg p-4 leading-relaxed">
             {ehrText}
           </pre>
