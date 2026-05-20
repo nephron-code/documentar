@@ -12,11 +12,13 @@ import {
 type Props = {
   tfg: number
   acr: number
+  /** Origem do ACR: 'lab' = laboratorial; 'cadastro' = categoria A do perfil (estimada) */
+  acrSource?: 'lab' | 'cadastro'
   /** Callback para passar o painel de exames KDIGO ao ExamOrderPanel */
   onKdigoExams?: (exams: string[], stagLabel: string) => void
 }
 
-export default function KdigoAlert({ tfg, acr, onKdigoExams }: Props) {
+export default function KdigoAlert({ tfg, acr, acrSource = 'lab', onKdigoExams }: Props) {
   const rec = getKdigoRecommendations(tfg, acr)
   const colors = RISK_COLORS[rec.risk]
 

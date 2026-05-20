@@ -135,8 +135,10 @@ type Props = {
   activeMedications: ActiveMedication[]
   /** Último valor de TFG registrado (pode ser null se não há exames anteriores) */
   lastTfg: number | null
-  /** Último valor de ACR registrado */
+  /** Último valor de ACR registrado (ou estimado pelo cadastro) */
   lastAcr: number | null
+  /** Origem do ACR: 'lab' = valor laboratorial; 'cadastro' = categoria A do perfil do paciente */
+  acrSource: 'lab' | 'cadastro' | null
   /** Resultado de imagem da última consulta — pré-preenchido */
   lastImagingResults: string | null
   /** Conduta da última consulta — pré-preenchida para facilitar retornos */
@@ -152,6 +154,7 @@ export default function NewEvolutionForm({
   activeMedications,
   lastTfg,
   lastAcr,
+  acrSource,
   lastImagingResults,
   lastConductText,
   lastLabResults,
@@ -571,17 +574,31 @@ export default function NewEvolutionForm({
           <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
             <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Evolução Clínica</h2>
 
-            {/* Motor KDIGO — exibido quando há TFG e ACR disponíveis */}
+            {/* Motor KDIGO — exibido quando há TFG disponível (ACR laboratorial ou por categoria do cadastro) */}
             {lastTfg !== null && lastAcr !== null && (
-              <KdigoAlert
-                tfg={lastTfg}
-                acr={lastAcr}
-              />
+              <>
+                <KdigoAlert
+                  tfg={lastTfg}
+                  acr={lastAcr}
+                  acrSource={acrSource ?? 'lab'}
+                />
+                {acrSource === 'cadastro' && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    ⚠ Classificação A baseada na categoria registrada no cadastro ({patient.albuminuria}) — sem ACR laboratorial disponível. Solicite microalbuminúria para classificação precisa.
+                  </p>
+                )}
+              </>
             )}
-            {/* Aviso quando faltam dados para o motor KDIGO */}
-            {(lastTfg === null || lastAcr === null) && (
+            {/* Aviso quando falta TFG para o motor KDIGO */}
+            {lastTfg === null && (
               <p className="text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-2">
-                Motor KDIGO disponível após registrar TFG e ACR nas consultas.
+                Motor KDIGO disponível após registrar TFG nas consultas.
+              </p>
+            )}
+            {/* Aviso quando há TFG mas nem ACR laboratorial nem categoria A no cadastro */}
+            {lastTfg !== null && lastAcr === null && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                TFG disponível, mas sem ACR laboratorial nem categoria A no cadastro. Registre a microalbuminúria ou edite o cadastro do paciente para ativar o motor KDIGO.
               </p>
             )}
 
