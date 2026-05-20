@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { EXAM_PACKAGES } from '@/lib/examPanels'
+import { EXAM_PACKAGES } from '@/lib/clinical/examPanels'
 import { getKdigoExamPanel } from '@/components/KdigoAlert'
 
 type Props = {

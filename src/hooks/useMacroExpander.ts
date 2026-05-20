@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { tryExpandMacro } from '@/lib/macros'
+import { tryExpandMacro } from '@/lib/clinical/macros'
 
 /**
  * Hook para expansão automática de macros taquigráficas em textareas.

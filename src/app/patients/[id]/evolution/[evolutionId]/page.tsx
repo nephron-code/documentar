@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { composeConsultationNote } from '@/lib/composeConsultationNote'
+import { composeConsultationNote } from '@/lib/clinical/composeConsultationNote'
 import CopyButton from '@/components/CopyButton'
 import PrintButton from '@/components/PrintButton'
 

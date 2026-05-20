@@ -7,7 +7,7 @@ import {
   RISK_LABEL,
   type RiskLevel,
   type KdigoRecommendations,
-} from '@/lib/kdigo'
+} from '@/lib/clinical/kdigo'
 
 type Props = {
   tfg: number
