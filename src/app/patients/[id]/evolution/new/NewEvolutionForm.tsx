@@ -702,37 +702,56 @@ export default function NewEvolutionForm({
       </div>
 
       {/* Modal de receituário */}
-      {showPrescription && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowPrescription(false)} />
-          <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900">Receituário</h2>
-              <button onClick={() => setShowPrescription(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+      {showPrescription && (() => {
+        const prescriptionText = prescriptionList.length === 0
+          ? ''
+          : prescriptionList
+              .map((m, i) => {
+                const detail = [m.dose, m.frequency].filter(Boolean).join(' — ')
+                return `${i + 1}. ${m.name}${detail ? `\n   ${detail}` : ''}`
+              })
+              .join('\n')
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowPrescription(false)} />
+            <div className="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-900">Receituário</h2>
+                <button onClick={() => setShowPrescription(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+              </div>
+
+              {prescriptionList.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">Nenhum medicamento em uso.</p>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-400">Selecione e copie, ou use o botão abaixo.</p>
+                  <textarea
+                    readOnly
+                    value={prescriptionText}
+                    rows={Math.min(prescriptionList.length * 2 + 1, 14)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 bg-gray-50 font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={e => (e.target as HTMLTextAreaElement).select()}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(prescriptionText).then(() => {
+                        const btn = document.getElementById('copy-prescription-btn')
+                        if (btn) { btn.textContent = '✓ Copiado!'; setTimeout(() => { btn.textContent = 'Copiar receituário' }, 2000) }
+                      })
+                    }}
+                    id="copy-prescription-btn"
+                    className="w-full text-sm font-medium text-blue-700 border border-blue-300 hover:bg-blue-50 rounded-lg py-2 transition-colors"
+                  >
+                    Copiar receituário
+                  </button>
+                </>
+              )}
             </div>
-            {prescriptionList.length === 0 ? (
-              <p className="text-sm text-gray-400 italic">Nenhum medicamento em uso.</p>
-            ) : (
-              <ol className="space-y-2">
-                {prescriptionList.map((m, i) => (
-                  <li key={i} className="text-sm text-gray-800">
-                    <span className="font-medium">{i + 1}. {m.name}</span>
-                    {(m.dose || m.frequency) && (
-                      <span className="text-gray-600 ml-1">— {[m.dose, m.frequency].filter(Boolean).join(', ')}</span>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
-            <button
-              onClick={() => window.print()}
-              className="w-full text-sm font-medium text-blue-700 border border-blue-300 hover:bg-blue-50 rounded-lg py-2 transition-colors"
-            >
-              Imprimir
-            </button>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Modal de confirmação de saída com dados não salvos */}
       {showLeaveModal && (
