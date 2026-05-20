@@ -60,6 +60,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/patients', request.url))
   }
 
+  // Rotas da API v1 têm autenticação própria (Bearer token / API Key) — não redirecionar
+  if (pathname.startsWith('/api/v1/')) {
+    return supabaseResponse
+  }
+
   // Usuário não autenticado tentando acessar /patients → /login
   if (pathname.startsWith('/patients') && !isLoggedIn) {
     return NextResponse.redirect(new URL('/login', request.url))
