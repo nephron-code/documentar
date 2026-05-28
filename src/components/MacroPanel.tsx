@@ -93,7 +93,7 @@ export default function MacroPanel({ macros, activeField, onInsert }: Props) {
       {/* Rodapé — dica + link para configurações */}
       <div className="border-t border-gray-100 px-3 py-2 bg-gray-50 flex items-center justify-between gap-2">
         <p className="text-[10px] text-gray-400">
-          Clique para inserir · ou <span className="font-mono">.atalho</span> + espaço
+          Clique para inserir · ou <span className="font-mono">//atalho</span> + espaço
         </p>
         <Link
           href="/configuracoes/macros"

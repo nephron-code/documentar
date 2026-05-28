@@ -7,9 +7,11 @@ import { saveEvolution } from '@/lib/actions/patients'
 import KdigoAlert from '@/components/KdigoAlert'
 import ExamOrderPanel from '@/components/ExamOrderPanel'
 import { calcTFGe, calcIdade } from '@/lib/clinical/ckd-epi-2021'
-import { useMacroExpander } from '@/hooks/useMacroExpander'
 import { getConductTemplate, templateHASResistente } from '@/lib/clinical/conductTemplates'
 import MacroPanel from '@/components/MacroPanel'
+import TextareaWithMacros from '@/components/TextareaWithMacros'
+import { getLabAlert, getLabRefText } from '@/lib/clinical/labRanges'
+import type { AlertLevel } from '@/lib/clinical/labRanges'
 import type { MacroRecord } from '@/lib/actions/macros'
 import MedicationAutocomplete from '@/components/MedicationAutocomplete'
 import MedicationList from '@/components/MedicationList'
@@ -201,11 +203,6 @@ export default function NewEvolutionForm({
   // Exames de imagem — pré-preenchido com resultado anterior
   const [imagingResults, setImagingResults] = useState(lastImagingResults ?? '')
 
-  // Macros taquigráficas para os campos de texto clínico
-  const macroComplaint  = useMacroExpander(chiefComplaint, setChiefComplaint)
-  const macroClinical   = useMacroExpander(clinicalNote, setClinicalNote)
-  const macroConduct    = useMacroExpander(conductText, setConductText)
-
   // Campo de texto com foco ativo — usado para sincronizar o MacroPanel
   const [activeField, setActiveField] = useState<'complaint' | 'clinicalNote' | 'conductText' | null>(null)
 
@@ -272,6 +269,31 @@ export default function NewEvolutionForm({
   }
 
   const hasAnyLab = Object.values(labValues).some(v => v !== '')
+
+  function labAlertClass(key: string): string {
+    const val = parseFloat(labValues[key])
+    if (isNaN(val)) return 'border-gray-400'
+    const level: AlertLevel = getLabAlert(key, val, patient.sex)
+    if (level === 'critical-low' || level === 'critical-high') return 'border-red-500 bg-red-50 text-red-900'
+    if (level === 'high') return 'border-orange-400 bg-orange-50'
+    if (level === 'low') return 'border-yellow-400 bg-yellow-50'
+    return 'border-green-400'
+  }
+
+  function labAlertBadge(key: string) {
+    const val = parseFloat(labValues[key])
+    if (isNaN(val) || val === 0) return null
+    const level: AlertLevel = getLabAlert(key, val, patient.sex)
+    if (level === 'normal') return null
+    const map: Record<string, string> = {
+      'high': '↑', 'low': '↓', 'critical-high': '↑↑', 'critical-low': '↓↓',
+    }
+    const colorMap: Record<string, string> = {
+      'high': 'text-orange-600', 'low': 'text-yellow-600',
+      'critical-high': 'text-red-600 font-bold', 'critical-low': 'text-red-600 font-bold',
+    }
+    return <span className={`text-xs ml-1 ${colorMap[level]}`}>{map[level]}</span>
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -409,17 +431,18 @@ export default function NewEvolutionForm({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Queixa principal / Anamnese
-                <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .ret .sem .inc + espaço</span>
+                <span className="ml-2 text-xs font-normal text-gray-400">// para abrir atalhos</span>
               </label>
               <div className="flex gap-3 items-start">
-                <textarea
+                <TextareaWithMacros
                   name="chiefComplaint"
                   rows={4}
                   placeholder="Queixas do paciente, história da doença atual..."
                   value={chiefComplaint}
-                  onChange={e => { setChiefComplaint(e.target.value); markDirty() }}
+                  onChange={v => { setChiefComplaint(v); markDirty() }}
                   onFocus={() => setActiveField('complaint')}
-                  onKeyDown={macroComplaint.onKeyDown}
+                  macros={macros}
+                  category="complaint"
                   className={inputClass + " resize-none flex-1"} />
                 <div className="w-52 shrink-0" style={{ minHeight: '120px' }}>
                   <MacroPanel
@@ -487,41 +510,51 @@ export default function NewEvolutionForm({
                 <div key={group.group}>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{group.group}</p>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                    {group.exams.map(exam => (
-                      <div key={exam.key} className="flex items-center gap-2">
-                        <label className="w-24 shrink-0 text-sm text-gray-700">{exam.label}</label>
-                        {exam.key === 'tfg' ? (
-                          /* Campo TFG: auto-preenchido pela calculadora CKD-EPI 2021 */
-                          <div className="relative w-24">
+                    {group.exams.map(exam => {
+                      const ref = getLabRefText(exam.key, patient.sex)
+                      return (
+                        <div key={exam.key} className="flex items-center gap-2">
+                          <label className="w-24 shrink-0 text-sm text-gray-700">
+                            {exam.label}
+                            {labAlertBadge(exam.key)}
+                          </label>
+                          {exam.key === 'tfg' ? (
+                            <div className="relative w-24">
+                              <input
+                                type="number"
+                                step="any"
+                                placeholder="—"
+                                value={labValues['tfg']}
+                                onChange={e => handleTfgChange(e.target.value)}
+                                className={`w-full border rounded-lg px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                  tfgeCalculada !== null && labValues['tfg']
+                                    ? labAlertClass('tfg')
+                                    : tfgeCalculada !== null
+                                    ? 'border-blue-400 bg-blue-50'
+                                    : 'border-gray-400 bg-white'
+                                }`}
+                              />
+                              {tfgeCalculada !== null && !labValues['tfg'] && (
+                                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-blue-400 text-xs">⟳</span>
+                              )}
+                            </div>
+                          ) : (
                             <input
                               type="number"
                               step="any"
                               placeholder="—"
-                              value={labValues['tfg']}
-                              onChange={e => handleTfgChange(e.target.value)}
-                              className={`w-full border rounded-lg px-2 py-1 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                tfgeCalculada !== null
-                                  ? 'border-blue-400 bg-blue-50'
-                                  : 'border-gray-400'
-                              }`}
+                              value={labValues[exam.key]}
+                              onChange={e => updateLab(exam.key, e.target.value)}
+                              className={`w-24 border rounded-lg px-2 py-1 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 ${labAlertClass(exam.key)}`}
                             />
-                            {tfgeCalculada !== null && !labValues['tfg'] && (
-                              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-blue-400 text-xs">⟳</span>
-                            )}
-                          </div>
-                        ) : (
-                          <input
-                            type="number"
-                            step="any"
-                            placeholder="—"
-                            value={labValues[exam.key]}
-                            onChange={e => updateLab(exam.key, e.target.value)}
-                            className="w-24 border border-gray-400 rounded-lg px-2 py-1 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        )}
-                        <span className="text-xs text-gray-400 w-16 shrink-0">{exam.unit}</span>
-                      </div>
-                    ))}
+                          )}
+                          <span className="text-xs text-gray-400 shrink-0">
+                            {exam.unit}
+                            {ref && <span className="ml-1 text-gray-300">({ref})</span>}
+                          </span>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               ))}
@@ -609,16 +642,17 @@ export default function NewEvolutionForm({
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Impressão clínica
-                    <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .drc .estab + espaço</span>
+                    <span className="ml-2 text-xs font-normal text-gray-400">// para abrir atalhos</span>
                   </label>
-                  <textarea
+                  <TextareaWithMacros
                     name="clinicalNote"
                     rows={4}
                     placeholder="Avaliação clínica, interpretação dos exames, estadiamento..."
                     value={clinicalNote}
-                    onChange={e => { setClinicalNote(e.target.value); markDirty() }}
+                    onChange={v => { setClinicalNote(v); markDirty() }}
                     onFocus={() => setActiveField('clinicalNote')}
-                    onKeyDown={macroClinical.onKeyDown}
+                    macros={macros}
+                    category="clinicalNote"
                     className={inputClass + " resize-none"} />
                 </div>
                 <div>
@@ -628,7 +662,7 @@ export default function NewEvolutionForm({
                       {lastConductText && (
                         <span className="ml-2 text-xs font-normal text-blue-500">pré-preenchida da última consulta</span>
                       )}
-                      <span className="ml-2 text-xs font-normal text-gray-400">clique no painel → ou .ret3 .mant + espaço</span>
+                      <span className="ml-2 text-xs font-normal text-gray-400">// para abrir atalhos</span>
                     </label>
                     <div className="flex gap-1.5">
                       <button
@@ -658,11 +692,12 @@ export default function NewEvolutionForm({
                   <MedicationAutocomplete
                     name="conductText"
                     rows={6}
-                    placeholder="Orientações, medicamentos, retorno... (autocomplete de meds ao digitar 3+ letras)"
+                    placeholder="Orientações, medicamentos, retorno... (// para atalhos · 3+ letras para autocomplete de meds)"
                     value={conductText}
-                    onChange={setConductText}
+                    onChange={v => { setConductText(v); markDirty() }}
                     onFocus={() => setActiveField('conductText')}
-                    onKeyDown={macroConduct.onKeyDown}
+                    macros={macros}
+                    macroCategory="conductText"
                     className={inputClass + " resize-none"}
                   />
                 </div>

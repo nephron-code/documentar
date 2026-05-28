@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { upsertMacro, deleteMacro, seedDefaultMacros } from '@/lib/actions/macros'
+import { upsertMacro, deleteMacro, seedDefaultMacros, migrateMacroPrefixes } from '@/lib/actions/macros'
 import type { MacroRecord } from '@/lib/actions/macros'
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -37,7 +37,7 @@ export default function MacrosEditor({ initialMacros }: Props) {
     .sort((a, b) => a.position - b.position)
 
   function startNew() {
-    setEditing({ id: null, key: '.', value: '', category: activeCategory })
+    setEditing({ id: null, key: '//', value: '', category: activeCategory })
     setError('')
     setSuccess('')
   }
@@ -96,13 +96,33 @@ export default function MacrosEditor({ initialMacros }: Props) {
     startTransition(async () => {
       try {
         await seedDefaultMacros()
-        // Recarrega a página para refletir o seed
         window.location.reload()
       } catch {
         setError('Erro ao importar macros padrão.')
       }
     })
   }
+
+  function handleMigrate() {
+    const oldCount = macros.filter(m => m.key.startsWith('.')).length
+    if (oldCount === 0) { setSuccess('Nenhum macro com prefixo "." encontrado.'); setTimeout(() => setSuccess(''), 3000); return }
+    if (!confirm(`Migrar ${oldCount} macro(s) com prefixo "." para "//"? (ex: .ret → //ret)`)) return
+    startTransition(async () => {
+      try {
+        const n = await migrateMacroPrefixes()
+        setMacros(prev => prev.map(m => m.key.startsWith('.')
+          ? { ...m, key: '//' + m.key.slice(1) }
+          : m
+        ))
+        setSuccess(`${n} macro(s) migrado(s) para o formato //.`)
+        setTimeout(() => setSuccess(''), 3000)
+      } catch {
+        setError('Erro ao migrar macros.')
+      }
+    })
+  }
+
+  const hasLegacyMacros = macros.some(m => m.key.startsWith('.'))
 
   const inputClass = "w-full border border-gray-400 rounded-lg px-3 py-2 text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
 
@@ -126,6 +146,15 @@ export default function MacrosEditor({ initialMacros }: Props) {
           ))}
         </div>
         <div className="flex gap-2">
+          {hasLegacyMacros && (
+            <button
+              onClick={handleMigrate}
+              disabled={isPending}
+              className="text-sm text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              ⟳ Migrar .xxx → //xxx
+            </button>
+          )}
           <button
             onClick={handleSeed}
             disabled={isPending}
@@ -160,12 +189,12 @@ export default function MacrosEditor({ initialMacros }: Props) {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
-                Atalho <span className="font-normal text-gray-400">(começa com ponto)</span>
+                Atalho <span className="font-normal text-gray-400">(começa com //)</span>
               </label>
               <input
                 value={editing.key}
                 onChange={e => setEditing(prev => prev ? { ...prev, key: e.target.value } : null)}
-                placeholder=".meu_atalho"
+                placeholder="//meu_atalho"
                 className={inputClass}
               />
             </div>
@@ -236,20 +265,24 @@ export default function MacrosEditor({ initialMacros }: Props) {
                   </td>
                   <td className="px-4 py-3 text-gray-700 leading-relaxed">{m.value}</td>
                   <td className="px-4 py-3">
-                    <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => startEdit(m)}
-                        className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(m)}
-                        className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                      >
-                        Remover
-                      </button>
-                    </div>
+                    {m.id.startsWith('builtin:') ? (
+                      <span className="text-[10px] text-gray-400 px-2">padrão</span>
+                    ) : (
+                      <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => startEdit(m)}
+                          className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(m)}
+                          className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -259,7 +292,7 @@ export default function MacrosEditor({ initialMacros }: Props) {
       </div>
 
       <p className="text-xs text-gray-400">
-        Os macros são usados no painel lateral durante a consulta. O atalho digitado + espaço também expande automaticamente nos campos de texto.
+        Os macros são usados no painel lateral durante a consulta. Digite <span className="font-mono">//</span> em qualquer campo de texto para abrir as sugestões, ou <span className="font-mono">//atalho</span> + espaço para expandir diretamente.
       </p>
     </div>
   )
