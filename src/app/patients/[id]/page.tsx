@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import LabTable from '@/components/LabTable'
 import LabChart from '@/components/LabChart'
 import DeletePatientButton from '@/components/DeletePatientButton'
+import LitiaseAlert from '@/components/LitiaseAlert'
 
 const DIAGNOSIS_LABEL: Record<string, string> = {
   DRC: 'DRC',
@@ -143,6 +144,8 @@ export default async function PatientPage({
             </div>
           </div>
         </section>
+
+        {patient.diagnosis === 'NEFROLITIASE' && <LitiaseAlert />}
 
         {/* Evoluções */}
         <section>
