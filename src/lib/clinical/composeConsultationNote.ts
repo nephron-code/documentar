@@ -11,12 +11,15 @@ export type PatientData = {
   /** Medicamentos ativos */
   medications?: { name: string; dose?: string | null; frequency?: string | null }[]
   etiology?: string | null
+  height?: number | null
 }
 
 export type EvolutionData = {
   consultationDate: Date
   bloodPressure?: string | null
   weight?: number | null
+  heartRate?: number | null
+  nextConsultationDate?: Date | null
   chiefComplaint?: string | null
   clinicalNote?: string | null
   conductText?: string | null
@@ -233,7 +236,13 @@ export function composeConsultationNote(
   // Sinais vitais
   const vitals: string[] = []
   if (evolution.bloodPressure) vitals.push(`PA ${evolution.bloodPressure} mmHg`)
+  if (evolution.heartRate) vitals.push(`FC ${evolution.heartRate} bpm`)
   if (evolution.weight) vitals.push(`Peso ${evolution.weight} kg`)
+  if (evolution.weight && patient.height && patient.height > 0) {
+    const bmi = +(evolution.weight / (patient.height / 100) ** 2).toFixed(1)
+    const bmiClass = bmi < 18.5 ? 'Baixo peso' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Sobrepeso' : 'Obesidade'
+    vitals.push(`IMC ${bmi} (${bmiClass})`)
+  }
 
   // Medicamentos — formata como "Nome dose frequency"
   const meds = patient.medications && patient.medications.length > 0
@@ -294,6 +303,11 @@ export function composeConsultationNote(
   if (labResults.length > 0) {
     lines.push(`HISTÓRICO LABORATORIAL (do mais recente ao mais antigo)`)
     lines.push(labHistory)
+    lines.push('')
+  }
+
+  if (evolution.nextConsultationDate) {
+    lines.push(`Retorno agendado: ${fmt(evolution.nextConsultationDate)}`)
     lines.push('')
   }
 

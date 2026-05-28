@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { EXAM_PACKAGES } from '@/lib/clinical/examPanels'
 import { getKdigoExamPanel } from '@/components/KdigoAlert'
 
@@ -10,6 +10,8 @@ type Props = {
   tfg?: number | null
   /** ACR atual para montar o pacote KDIGO dinâmico */
   acr?: number | null
+  /** Chamado sempre que a lista de exames selecionados muda — usado para salvar no banco */
+  onExamsChange?: (exams: string[]) => void
 }
 
 const DEFAULT_PACKAGE: Record<string, string> = {
@@ -21,7 +23,7 @@ const DEFAULT_PACKAGE: Record<string, string> = {
   CONSULTA_GERAL:       'rotina',
 }
 
-export default function ExamOrderPanel({ diagnosisKey, tfg, acr }: Props) {
+export default function ExamOrderPanel({ diagnosisKey, tfg, acr, onExamsChange }: Props) {
   // Monta pacote KDIGO dinâmico se houver TFG e ACR
   const kdigoPackage = useMemo(() => {
     if (tfg == null || acr == null) return null
@@ -54,6 +56,11 @@ export default function ExamOrderPanel({ diagnosisKey, tfg, acr }: Props) {
   }, [kdigoPackage])
 
   const selectedPkg = allOptions.find(p => p.key === selectedKey)
+
+  useEffect(() => {
+    if (onExamsChange && selectedPkg) onExamsChange(selectedPkg.exams)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedKey, onExamsChange])
 
   async function handleCopy() {
     if (!selectedPkg) return

@@ -226,6 +226,9 @@ type EvolutionInput = {
   bloodPressure?: string
   weight?: string
   edema?: string
+  heartRate?: number
+  nextConsultationDate?: string
+  orderedExams?: string
   clinicalNote?: string
   conductText?: string
   imagingResults?: string
@@ -260,6 +263,11 @@ export async function saveEvolution(payload: {
         bloodPressure: evolutionData.bloodPressure || null,
         weight: evolutionData.weight ? parseFloat(evolutionData.weight) : null,
         edema: evolutionData.edema || null,
+        heartRate: evolutionData.heartRate ?? null,
+        nextConsultationDate: evolutionData.nextConsultationDate
+          ? new Date(evolutionData.nextConsultationDate)
+          : null,
+        orderedExams: evolutionData.orderedExams || null,
         clinicalNote: evolutionData.clinicalNote || null,
         conductText: evolutionData.conductText || null,
         imagingResults: evolutionData.imagingResults || null,
@@ -367,4 +375,16 @@ export async function updatePatient(patientId: string, data: {
 export async function deletePatient(patientId: string) {
   await prisma.patient.delete({ where: { id: patientId } })
   revalidatePath('/patients')
+}
+
+/**
+ * Atualiza a altura do paciente no perfil.
+ * Chamada durante a consulta quando o médico informa ou corrige a altura.
+ */
+export async function updatePatientHeight(patientId: string, height: number) {
+  await prisma.patient.update({
+    where: { id: patientId },
+    data: { height },
+  })
+  revalidatePath(`/patients/${patientId}`)
 }

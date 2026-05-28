@@ -19,6 +19,7 @@ model Patient {
   ckdStage      CkdStage?
   albuminuria   AlbuminuriaCategory?
   comorbidities String[]
+  height        Float?
   evolutions    Evolution[]
   labResults    LabResult[]
   medications   PatientMedication[]
@@ -36,11 +37,11 @@ model Evolution {
   bloodPressure         String?
   weight                Float?
   edema                 String?
+  heartRate             Int?
+  nextConsultationDate  DateTime?
+  orderedExams          String?
   clinicalNote          String?
   conductText           String?
-  generatedExames       String?
-  generatedEvolucao     String?
-  generatedConduta      String?
   imagingResults        String?
   patient               Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
   prescribedMedications PatientMedication[] @relation("PrescribedIn")

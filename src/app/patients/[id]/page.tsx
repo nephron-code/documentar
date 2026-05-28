@@ -63,6 +63,13 @@ export default async function PatientPage({
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            <Link
+              href={`/patients/${id}/folheto`}
+              className="hidden sm:flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 bg-blue-50 hover:bg-blue-100 px-2 sm:px-3 py-1.5 rounded-lg transition-colors"
+              title="Folheto educativo do paciente"
+            >
+              Folheto
+            </Link>
             {/* Editar — só ícone no mobile */}
             <Link
               href={`/patients/${id}/edit`}

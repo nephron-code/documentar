@@ -1,9 +1,9 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
-import { saveEvolution } from '@/lib/actions/patients'
+import { saveEvolution, updatePatientHeight } from '@/lib/actions/patients'
 import KdigoAlert from '@/components/KdigoAlert'
 import ExamOrderPanel from '@/components/ExamOrderPanel'
 import { calcTFGe, calcIdade } from '@/lib/clinical/ckd-epi-2021'
@@ -122,6 +122,7 @@ type Patient = {
   etiology?: string | null
   ckdStage?: string | null
   albuminuria?: string | null
+  height?: number | null
 }
 
 type LabResultRef = {
@@ -202,6 +203,47 @@ export default function NewEvolutionForm({
   const [conductText, setConductText] = useState(lastConductText ?? '')
   // Exames de imagem — pré-preenchido com resultado anterior
   const [imagingResults, setImagingResults] = useState(lastImagingResults ?? '')
+
+  // Campos vitais extras
+  const [weight, setWeight] = useState<string>('')
+  const [height, setHeight] = useState<string>(
+    patient.height ? String(patient.height) : ''
+  )
+  const [heartRate, setHeartRate] = useState<string>('')
+  const [nextConsultationDate, setNextConsultationDate] = useState<string>('')
+  const [orderedExams, setOrderedExams] = useState<string>('')
+
+  const bmi = useMemo(() => {
+    const h = parseFloat(height)
+    const w = parseFloat(weight)
+    if (!h || !w || h <= 0 || w <= 0) return null
+    return +(w / (h / 100) ** 2).toFixed(1)
+  }, [height, weight])
+
+  function bmiLabel(b: number): string {
+    if (b < 18.5) return 'Baixo peso'
+    if (b < 25) return 'Normal'
+    if (b < 30) return 'Sobrepeso'
+    if (b < 35) return 'Obesidade I'
+    if (b < 40) return 'Obesidade II'
+    return 'Obesidade III'
+  }
+  function bmiColor(b: number): string {
+    if (b < 18.5) return 'text-yellow-700 bg-yellow-50 border-yellow-300'
+    if (b < 25) return 'text-green-700 bg-green-50 border-green-300'
+    if (b < 30) return 'text-orange-700 bg-orange-50 border-orange-300'
+    return 'text-red-700 bg-red-50 border-red-300'
+  }
+
+  function addMonthsToToday(months: number): string {
+    const d = new Date()
+    d.setMonth(d.getMonth() + months)
+    return d.toISOString().split('T')[0]
+  }
+
+  const handleExamsChange = useCallback((exams: string[]) => {
+    setOrderedExams(exams.join('\n'))
+  }, [])
 
   // Campo de texto com foco ativo — usado para sincronizar o MacroPanel
   const [activeField, setActiveField] = useState<'complaint' | 'clinicalNote' | 'conductText' | null>(null)
@@ -315,9 +357,12 @@ export default function NewEvolutionForm({
           patientId: patient.id,
           consultationDate: form.get('consultationDate') as string,
           chiefComplaint: chiefComplaint || undefined,
-          bloodPressure: form.get('bloodPressure') as string,
-          weight: form.get('weight') as string,
+          bloodPressure: form.get('bloodPressure') as string || undefined,
+          weight: weight || undefined,
           edema: form.get('edema') as string || undefined,
+          heartRate: heartRate ? parseInt(heartRate, 10) : undefined,
+          nextConsultationDate: nextConsultationDate || undefined,
+          orderedExams: orderedExams || undefined,
           clinicalNote: clinicalNote || undefined,
           conductText: conductText || undefined,
           imagingResults: imagingResults || undefined,
@@ -326,6 +371,12 @@ export default function NewEvolutionForm({
         newMedications,
         suspendedMedicationIds: suspendedIds,
       })
+
+      // Atualiza altura no perfil do paciente se preenchida ou alterada
+      const heightNum = parseFloat(height)
+      if (heightNum > 0 && heightNum !== (patient.height ?? 0)) {
+        await updatePatientHeight(patient.id, heightNum)
+      }
 
       // Aplica atualização de diagnóstico/estadiamento se o médico confirmou alguma mudança
       if (diagnosisUpdate && Object.keys(diagnosisUpdate).length > 0) {
@@ -413,9 +464,29 @@ export default function NewEvolutionForm({
                 <input name="bloodPressure" placeholder="ex: 140/90" className={inputClass} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
-                <input name="weight" type="number" step="0.1" placeholder="ex: 78.5" className={inputClass} />
+                <label className="block text-sm font-medium text-gray-700 mb-1">FC (bpm)</label>
+                <input
+                  type="number"
+                  min="30" max="250"
+                  placeholder="ex: 72"
+                  value={heartRate}
+                  onChange={e => { setHeartRate(e.target.value); markDirty() }}
+                  className={inputClass}
+                />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  placeholder="ex: 78.5"
+                  value={weight}
+                  onChange={e => { setWeight(e.target.value); markDirty() }}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Edema</label>
                 <select name="edema" className={inputClass}>
@@ -426,6 +497,28 @@ export default function NewEvolutionForm({
                   <option value="+++/4+">+++/4+</option>
                   <option value="++++/4+">++++/4+</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Altura (cm)</label>
+                <input
+                  type="number"
+                  min="50" max="250"
+                  placeholder="ex: 170"
+                  value={height}
+                  onChange={e => { setHeight(e.target.value); markDirty() }}
+                  className={inputClass}
+                />
+              </div>
+              <div className="col-span-2 flex items-end pb-0.5">
+                {bmi !== null ? (
+                  <span className={`inline-flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border ${bmiColor(bmi)}`}>
+                    <span className="text-xs font-normal">IMC</span>
+                    <span>{bmi}</span>
+                    <span className="text-xs">— {bmiLabel(bmi)}</span>
+                  </span>
+                ) : (
+                  <span className="text-sm text-gray-400">IMC — preencha peso e altura</span>
+                )}
               </div>
             </div>
             <div>
@@ -723,7 +816,48 @@ export default function NewEvolutionForm({
             diagnosisKey={patient.diagnosis}
             tfg={lastTfg}
             acr={lastAcr}
+            onExamsChange={handleExamsChange}
           />
+
+          {/* Retorno */}
+          <section className="bg-white border border-gray-200 rounded-lg p-6 space-y-3">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Próximo Retorno</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Registre a data prevista — aparecerá na folha de saída do paciente.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {[
+                { label: '+1 mês', months: 1 },
+                { label: '+3 meses', months: 3 },
+                { label: '+6 meses', months: 6 },
+                { label: '+1 ano', months: 12 },
+              ].map(({ label, months }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setNextConsultationDate(addMonthsToToday(months))}
+                  className="text-xs text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  {label}
+                </button>
+              ))}
+              <input
+                type="date"
+                value={nextConsultationDate}
+                onChange={e => setNextConsultationDate(e.target.value)}
+                className="border border-gray-400 rounded-lg px-3 py-1.5 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {nextConsultationDate && (
+                <button
+                  type="button"
+                  onClick={() => setNextConsultationDate('')}
+                  className="text-xs text-gray-400 hover:text-gray-600"
+                >
+                  ✕ limpar
+                </button>
+              )}
+            </div>
+          </section>
 
           {error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">{error}</p>

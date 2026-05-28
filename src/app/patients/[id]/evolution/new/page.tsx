@@ -22,6 +22,7 @@ export default async function NewEvolutionPage({
       etiology: true,
       ckdStage: true,
       albuminuria: true,
+      height: true,
     },
   })
 
